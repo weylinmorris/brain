@@ -14,6 +14,10 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Brain",
   description: "A smarter way to note",
+    icons: {
+        icon: '/favicon.ico',
+        apple: '/favicon.ico',
+    },
 };
 
 export default function RootLayout({ children }) {
