@@ -115,7 +115,7 @@ export const getPreviewFromBlock = (block) => {
 };
 
 // Get preview from block content
-export const getPreviewFromBlockContent = (block, previewLength = 100) => {
+export const getPreviewFromBlockContent = (block, previewLength = 80) => {
     try {
         const content = JSON.parse(block.content);
         const allContent = getAllLexicalContent(content);

@@ -3,7 +3,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @layer base {
   /* Headings */
   h1 {
@@ -56,3 +55,11 @@
 body {
   font-family: Inter, Helvetica, sans-serif;
 }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevent scrolling */
+  height: 100%; /* Ensure they fill the viewport */
+}
+

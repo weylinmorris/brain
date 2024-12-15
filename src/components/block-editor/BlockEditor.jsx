@@ -129,7 +129,7 @@ const BlockEditor = ({ className }) => {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-2xl font-bold mb-4 m-4 bg-transparent border-none outline-none resize-none"
+                className="w-full text-2xl font-bold mb-4 m-4 bg-transparent border-none outline-none resize-none text-neutral-50"
                 placeholder="Untitled"
                 rows={1}
                 ref={textareaRef}

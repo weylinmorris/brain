@@ -6,7 +6,7 @@ import {getPreviewFromBlock, getPreviewFromBlockContent} from '@/utils/blockUtil
 function BlockPreview({block, onClick, showPreview = true, showTime = true}) {
     return (
         <div
-            className="px-4 py-2 bg-neutral-600 hover:bg-neutral-500 text-neutral-400 hover:text-neutral-50 rounded-md transition-colors cursor-pointer space-y-2"
+            className="px-4 py-2 bg-neutral-600 hover:bg-neutral-500 text-neutral-300 hover:text-neutral-50 rounded-md transition-colors cursor-pointer space-y-2"
             onClick={() => onClick?.(block)}
         >
             <p className="text-sm font-bold">{getPreviewFromBlock(block)}</p>

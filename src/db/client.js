@@ -1,21 +1,15 @@
 import { Neo4jClient } from './neo4j/driver.js';
 import { BlockRepository } from './neo4j/blockRepository.js';
-import { SimilarityRepository } from './neo4j/similarityRepository.js';
+import {SmartLinkRepository} from "@/db/neo4j/smartLinkRepository.js";
 
 class Database {
     constructor() {
-        this._neo4j = new Neo4jClient(); // Initialize Neo4j client
+        this._neo4j = new Neo4jClient();
 
-        // Initialize repositories without dependencies
-        this._blocks = null;
-        this._similarities = null;
-
-        // Create the repositories and inject dependencies
         this._blocks = new BlockRepository(this._neo4j);
-        this._similarities = new SimilarityRepository(this._neo4j, this._blocks);
+        this._smartLinks = new SmartLinkRepository(this._neo4j, this._blocks);
 
-        // Inject SimilarityRepository into BlockRepository
-        this._blocks.setSimilarityRepository(this._similarities);
+        this._blocks.setSmartLinkRepository(this._smartLinks);
     }
 
     static getInstance() {
@@ -45,8 +39,8 @@ class Database {
         return this._blocks;
     }
 
-    get similarities() {
-        return this._similarities;
+    get smartLinks() {
+        return this._smartLinks;
     }
 
     async disconnect() {

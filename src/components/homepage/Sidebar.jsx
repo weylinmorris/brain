@@ -99,7 +99,8 @@ function Sidebar() {
     };
 
     return (
-        <div className="px-2 py-4 bg-neutral-600 w-[40rem] flex flex-col h-screen text-neutral-50">
+        <div style={{height: "calc(var(--vh, 1vh) * 100)"}}
+             className="px-2 py-4 bg-neutral-600 w-[40rem] flex flex-col text-neutral-50">
             <div className="flex-1 flex flex-col overflow-hidden">
                 <div>
                     <button

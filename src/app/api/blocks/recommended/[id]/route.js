@@ -7,7 +7,7 @@ export async function GET(request, context) {
     try {
         await db.ensureConnection();
 
-        const blocks = await db.similarities.getRecommendations(id);
+        const blocks = await db.smartLinks.getRelatedBlockRecommendations(id);
 
         return NextResponse.json(blocks || []);
     } catch (error) {

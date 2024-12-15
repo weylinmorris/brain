@@ -1,6 +1,7 @@
 import {v4 as uuidv4} from 'uuid';
 import OpenAI from "openai";
 import pLimit from 'p-limit';
+import {getPlainText} from "@/db/neo4j/utils.js";
 
 const RATE_LIMIT = 80;
 const PERIOD = 60 * 1000; // 1 minute in milliseconds
@@ -16,56 +17,15 @@ export class BlockRepository {
         this.openai = new OpenAI(process.env.OPENAI_API_KEY);
     }
 
-    setSimilarityRepository(similarityRepository) {
-        this.similarityRepository = similarityRepository;
-    }
-
-    getPlainText(content) {
-        try {
-            // Check if content is empty or not provided
-            if (!content || typeof content !== 'string') {
-                console.warn('Content is empty or invalid:', content);
-                return ''; // Return an empty string for empty content
-            }
-
-            // Parse the JSON content
-            const parsedContent = JSON.parse(content);
-
-            // Recursive function to extract text from nodes
-            const extractText = (node) => {
-                if (!node) return '';
-
-                // Handle text nodes
-                if (node.type === 'text' && node.text) {
-                    return node.text;
-                }
-
-                // Handle nodes with children
-                if (node.children && Array.isArray(node.children)) {
-                    return node.children.map(extractText).join('');
-                }
-
-                return ''; // Fallback for nodes without text or children
-            };
-
-            // Start extracting from the root node
-            if (parsedContent.root && parsedContent.root.children) {
-                return parsedContent.root.children.map(extractText).join('');
-            }
-
-            console.warn('Parsed content does not have a valid root or children:', parsedContent);
-            return ''; // Return empty string if structure is invalid
-        } catch (error) {
-            console.error('Failed to parse content or extract plain text:', error);
-            return ''; // Return empty string if parsing fails
-        }
+    setSmartLinkRepository(smartLinkRepository) {
+        this.smartLinkRepository = smartLinkRepository;
     }
 
     async createBlock(input) {
         const blockId = uuidv4();
 
         try {
-            const plainText = this.getPlainText(input.content);
+            const plainText = getPlainText(input.content);
             const embeddingResponse = await this.openai.embeddings.create({
                 model: 'text-embedding-3-small',
                 input: plainText,
@@ -111,7 +71,7 @@ export class BlockRepository {
 
             const block = result[0];
 
-            this.similarityRepository.computeSimilaritiesForBlock(block['block'].id)
+            this.smartLinkRepository.traceBlockLinks(block['block'].id)
                 .catch(error => console.error('Failed to compute similarities:', error));
 
             return {
@@ -150,6 +110,7 @@ export class BlockRepository {
         }
     }
 
+    // Only used for logseq imports
     async createManyBlocks(inputs) {
         try {
             const batchSize = 100;
@@ -459,7 +420,7 @@ export class BlockRepository {
                 params.type = updates.type;
             }
 
-            const plainText = this.getPlainText(updates.content);
+            const plainText = getPlainText(updates.content);
             const embeddingResponse = await this.openai.embeddings.create({
                 model: 'text-embedding-3-small',
                 input: plainText,
@@ -500,7 +461,7 @@ export class BlockRepository {
 
             const block = result[0];
 
-            this.similarityRepository.computeSimilaritiesForBlock(block['block'].id)
+            this.smartLinkRepository.traceBlockLinks(block['block'].id)
                 .catch(error => console.error('Failed to compute similarities:', error));
 
             return {
