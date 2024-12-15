@@ -116,16 +116,11 @@ export async function PATCH(request, context) {
 
 export async function DELETE(request, context) {
     const { id } = await Promise.resolve(context.params);
-    console.log('DELETE /api/blocks/[id]: Starting request', { id });
 
     try {
-        console.log('DELETE /api/blocks/[id]: Ensuring database connection');
         await db.ensureConnection();
-        console.log('DELETE /api/blocks/[id]: Database connection established');
 
-        console.log('DELETE /api/blocks/[id]: Deleting block', { id });
         await db.blocks.deleteBlock(id);
-        console.log('DELETE /api/blocks/[id]: Block deleted successfully', { id });
 
         return NextResponse.json(null);
     } catch (error) {
