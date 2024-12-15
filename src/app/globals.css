@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Headings */
+  h1 {
+    @apply text-4xl font-bold tracking-tight text-text dark:text-text;
+  }
+
+  h2 {
+    @apply text-3xl font-semibold tracking-tight text-text dark:text-text;
+  }
+
+  h3 {
+    @apply text-2xl font-semibold text-text dark:text-text;
+  }
+
+  h4 {
+    @apply font-semibold text-text dark:text-text;
+  }
+
+  /* Body text */
+  p {
+    @apply text-base text-text-secondary dark:text-text-secondary;
+  }
+
+  /* Links */
+  a {
+    @apply text-primary-600 dark:text-primary-400 hover:underline cursor-pointer;
+  }
+
+  /* Code */
+  code {
+    @apply font-mono bg-background-secondary dark:bg-background-secondary px-1.5 py-0.5 rounded text-sm text-text dark:text-text;
+  }
+
+  /* Small text */
+  small {
+    @apply text-sm text-text-secondary dark:text-text-secondary;
+  }
+
+  /* Form elements */
+  label {
+    @apply text-sm font-medium text-text-secondary dark:text-text-secondary;
+  }
+
+  input, textarea, select {
+    @apply focus:outline-none focus:border-primary-600 dark:focus:border-primary-400 text-sm;
+    font-family: Inter, Helvetica, sans-serif;
+  }
+}
+
+body {
+  font-family: Inter, Helvetica, sans-serif;
+}
