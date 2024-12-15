@@ -14,7 +14,7 @@ function SavePlugin({ onSave }) {
     return (
         <button
             onClick={saveContent}
-            className="flex items-center font-bold gap-2 px-3 py-1 bg-primary-800 hover:bg-primary-700 rounded text-sm transition-colors duration-200"
+            className="flex items-center font-bold text-neutral-100 gap-2 px-3 py-1 bg-primary-800 hover:bg-primary-700 rounded text-sm transition-colors duration-200"
         >
             <Save size={16} />
             Save
