@@ -56,8 +56,6 @@ export function useBlocks() {
             dispatch({type: 'CREATE_BLOCK', block: newBlock});
             dispatch({type: 'FINISH_SAVING'});
 
-            addToast('Block created', 'success');
-
             return newBlock;
         } catch (error) {
             dispatch({type: 'SET_ERROR', error: error.message});
@@ -70,7 +68,6 @@ export function useBlocks() {
         try {
             const newBlock = await updateBlock(block);
             dispatch({type: 'UPDATE_BLOCK', block: newBlock});
-            addToast('Block updated', 'success');
         } catch (error) {
             console.error('Failed to sync block with server:', error);
             dispatch({type: 'SET_ERROR', error: error.message});
