@@ -20,6 +20,33 @@ import ToolbarPlugin from './ToolbarPlugin';
 import {useAutoResizingTextArea} from "@/hooks/blockEditorUtilHooks.js";
 
 const editorConfig = {
+    namespace: 'BrainEditor',
+    theme: {
+        paragraph: 'mb-2',
+        heading: {
+            h1: 'text-3xl font-bold mb-4',
+            h2: 'text-2xl font-bold mb-3',
+            h3: 'text-xl font-bold mb-2',
+        },
+        text: {
+            bold: 'font-bold',
+            italic: 'italic',
+            underline: 'underline',
+            strikethrough: 'line-through',
+            code: 'bg-neutral-200 dark:bg-neutral-700 rounded px-1.5 py-0.5 font-mono text-sm',
+        },
+        list: {
+            ul: 'mb-2',
+            ol: 'list-decimal ml-4 mb-2',
+            listitem: 'mb-1',
+            nested: {
+                listitem: 'ml-4'
+            },
+            checklist: 'flex gap-2 items-start',
+        },
+        quote: 'border-l-4 border-neutral-500 pl-4 italic text-neutral-300',
+        // code: 'bg-neutral-800 rounded-md p-4 font-mono text-sm mb-2 block whitespace-pre-wrap',
+    },
     nodes: [
         HeadingNode,
         QuoteNode,
@@ -97,7 +124,7 @@ const BlockEditor = ({ className }) => {
 
     // Keep the original debouncedSave as it was
     const debouncedSave = useMemo(
-        () => _.debounce(saveBlock, 3000, { maxWait: 60000 }),
+        () => _.debounce(saveBlock, 2000, { maxWait: 60000 }),
         [activeBlockId] // Reset debounce when block changes
     );
 

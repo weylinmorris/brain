@@ -135,7 +135,7 @@ const ToolbarPlugin = ({handleSave, saveStatus, lastSaved, block}) => {
         <button
             onClick={onClick}
             className={`p-2 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-50 
-                ${isActive ? 'bg-neutral-600' : ''}`}
+                ${isActive ? 'bg-neutral-200 dark:bg-neutral-600' : ''}`}
             title={tooltip}
         >
             <Icon size={18} />
