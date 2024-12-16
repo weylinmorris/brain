@@ -39,6 +39,7 @@ const BlockEditor = ({ className }) => {
     const [title, setTitle] = useState(activeBlock?.title || '');
     const textareaRef = useAutoResizingTextArea(title);
     const [saveStatus, setSaveStatus] = useState('saved');
+    const [lastSaved, setLastSaved] = useState(null);
 
     // Reset editor when active block changes
     useEffect(() => {
@@ -86,6 +87,7 @@ const BlockEditor = ({ className }) => {
             }
 
             setSaveStatus('saved');
+            setLastSaved(Date.now());
         } catch (error) {
             console.error('Failed to save block:', error);
             setSaveStatus('not-saved');
@@ -142,7 +144,7 @@ const BlockEditor = ({ className }) => {
             <div className={`flex-1 min-h-0 mb-4 border border-neutral-300 dark:border-neutral-600 rounded-md overflow-hidden ${className || ''}`}>
                 <LexicalComposer key={editorKey} initialConfig={currentEditorConfig}>
                     <div className="h-full flex flex-col">
-                        <ToolbarPlugin handleSave={handleContentSave} saveStatus={saveStatus} block={activeBlock} />
+                        <ToolbarPlugin handleSave={handleContentSave} saveStatus={saveStatus} lastSaved={lastSaved} block={activeBlock} />
                         <div className="relative flex-1 min-h-0 overflow-auto bg-neutral-50 dark:bg-neutral-700 max-w-none prose dark:prose-invert">
                             <RichTextPlugin
                                 contentEditable={

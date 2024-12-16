@@ -33,7 +33,7 @@ const formatDate = (date) => {
     });
 };
 
-function SavePlugin({ onSave, saveStatus, block }) {
+function SavePlugin({ onSave, saveStatus, lastSaved, block }) {
     const [editor] = useLexicalComposerContext();
 
     async function saveContent() {
@@ -65,7 +65,7 @@ function SavePlugin({ onSave, saveStatus, block }) {
 
     const renderText = () => {
         if (saveStatus === 'saving') return 'Saving...';
-        if (block?.updatedAt) return `Updated ${formatDate(block.updatedAt)}`;
+        if (lastSaved || block?.updatedAt) return `Updated ${formatDate(lastSaved || block.updatedAt)}`;
         return 'New block';
     };
 

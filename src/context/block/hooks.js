@@ -66,8 +66,9 @@ export function useBlocks() {
         }
     };
 
-    const updateExistingBlock = async (_block) => {
+    const updateExistingBlock = async (block) => {
         try {
+            await updateBlock(block);
             addToast('Block updated', 'success');
         } catch (error) {
             console.error('Failed to sync block with server:', error);
