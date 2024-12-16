@@ -46,6 +46,7 @@ const BlockEditor = ({ className }) => {
         setEditorKey(prev => prev + 1);
         initialContentRef.current = activeBlock?.content || null;
         setTitle(activeBlock?.title || '');
+        setLastSaved(null);
     }, [activeBlockId, activeBlock]);
 
     useEffect(() => {
