@@ -45,7 +45,6 @@ const editorConfig = {
             checklist: 'flex gap-2 items-start',
         },
         quote: 'border-l-4 border-neutral-500 pl-4 italic text-neutral-300',
-        // code: 'bg-neutral-800 rounded-md p-4 font-mono text-sm mb-2 block whitespace-pre-wrap',
     },
     nodes: [
         HeadingNode,
@@ -113,7 +112,6 @@ const BlockEditor = ({ className }) => {
             }
 
             setSaveStatus('saved');
-            setLastSaved(Date.now());
         } catch (error) {
             console.error('Failed to save block:', error);
             setSaveStatus('not-saved');
@@ -146,8 +144,8 @@ const BlockEditor = ({ className }) => {
     }, [debouncedSave]);
 
     if (!mounted) return <div className="p-12 font-bold text-center text-neutral-500 dark:text-neutral-400">Loading editor...</div>;
-    if (!activeBlockId) return <div className="p-12 font-bold text-center text-neutral-500 dark:text-neutral-400">No block selected</div>;
-    if (isLoading) return <div className="p-12 font-bold text-center text-neutral-500 dark:text-neutral-400">Loading block data...</div>;
+    if (!activeBlockId) return <div className="p-12 font-bold text-center text-neutral-500 dark:text-neutral-400">No note selected</div>;
+    if (isLoading) return <div className="p-12 font-bold text-center text-neutral-500 dark:text-neutral-400">Loading note...</div>;
     if (error) return <div className="p-12 font-bold text-center text-red-500">Error: {error}</div>;
 
     const currentEditorConfig = {
@@ -168,7 +166,7 @@ const BlockEditor = ({ className }) => {
             />
 
             <div className={`flex-1 min-h-0 mb-4 border border-neutral-300 dark:border-neutral-600 rounded-md overflow-hidden ${className || ''}`}>
-                <LexicalComposer key={editorKey} initialConfig={currentEditorConfig}>
+                <LexicalComposer initialConfig={currentEditorConfig}>
                     <div className="h-full flex flex-col">
                         <ToolbarPlugin handleSave={handleContentSave} saveStatus={saveStatus} block={activeBlock} />
                         <div className="relative flex-1 min-h-0 overflow-auto bg-neutral-50 dark:bg-neutral-700 max-w-none prose dark:prose-invert">
