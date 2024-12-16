@@ -124,8 +124,8 @@ const BlockEditor = ({ className }) => {
 
     // Keep the original debouncedSave as it was
     const debouncedSave = useMemo(
-        () => _.debounce(saveBlock, 2000, { maxWait: 60000 }),
-        [activeBlockId] // Reset debounce when block changes
+        () => _.debounce(saveBlock, 2000, { leading: false, trailing: true }),
+        [saveBlock]
     );
 
     // Handle title changes
