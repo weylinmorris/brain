@@ -65,7 +65,7 @@ function SavePlugin({ onSave, saveStatus, lastSaved, block }) {
 
     const renderText = () => {
         if (saveStatus === 'saving') return 'Saving...';
-        if (lastSaved || block?.updatedAt) return `Updated ${formatDate(lastSaved || block.updatedAt)}`;
+        if (block?.updatedAt) return `Updated ${formatDate(block.updatedAt)}`;
         return 'New block';
     };
 

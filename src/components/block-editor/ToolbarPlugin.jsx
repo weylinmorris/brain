@@ -55,7 +55,7 @@ const Piclrow = () => {
     )
 }
 
-const ToolbarPlugin = ({handleSave, saveStatus, lastSaved, block}) => {
+const ToolbarPlugin = ({handleSave, saveStatus, block}) => {
     const [editor] = useLexicalComposerContext();
     const [activeStyles, setActiveStyles] = useState(new Set());
     const [, setIsCodeBlock] = useState(false);
@@ -260,7 +260,7 @@ const ToolbarPlugin = ({handleSave, saveStatus, lastSaved, block}) => {
             </div>
 
             <div className="flex-1 flex justify-end">
-                <SavePlugin onSave={handleSave} saveStatus={saveStatus} lastSaved={lastSaved} block={block} />
+                <SavePlugin onSave={handleSave} saveStatus={saveStatus} block={block} />
             </div>
         </div>
     );
