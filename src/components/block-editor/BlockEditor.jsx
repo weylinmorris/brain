@@ -176,11 +176,6 @@ const BlockEditor = ({ className }) => {
                                         className="h-full min-h-full outline-none p-4 text-neutral-950 dark:text-neutral-100 [&_li:has(>ul)]:!list-none [&_ul]:list-disc [&_ul_ul]:list-circle [&_ul_ul_ul]:list-square"
                                     />
                                 }
-                                placeholder={
-                                    <div className="absolute top-4 left-4 text-neutral-600 dark:text-neutral-500 pointer-events-none">
-                                        {"What's on your mind?"}
-                                    </div>
-                                }
                                 ErrorBoundary={LexicalErrorBoundary}
                             />
                             <HistoryPlugin />
