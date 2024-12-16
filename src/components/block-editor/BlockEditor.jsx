@@ -18,34 +18,11 @@ import _ from 'lodash';
 
 import ToolbarPlugin from './ToolbarPlugin';
 import {useAutoResizingTextArea} from "@/hooks/blockEditorUtilHooks.js";
+import theme from "@/components/block-editor/EditorTheme.js";
 
 const editorConfig = {
     namespace: 'BrainEditor',
-    theme: {
-        paragraph: 'mb-2',
-        heading: {
-            h1: 'text-3xl font-bold mb-4',
-            h2: 'text-2xl font-bold mb-3',
-            h3: 'text-xl font-bold mb-2',
-        },
-        text: {
-            bold: 'font-bold',
-            italic: 'italic',
-            underline: 'underline',
-            strikethrough: 'line-through',
-            code: 'bg-neutral-200 dark:bg-neutral-700 rounded px-1.5 py-0.5 font-mono text-sm',
-        },
-        list: {
-            ul: 'mb-2',
-            ol: 'list-decimal ml-4 mb-2',
-            listitem: 'mb-1',
-            nested: {
-                listitem: 'ml-4'
-            },
-            checklist: 'flex gap-2 items-start',
-        },
-        quote: 'border-l-4 border-neutral-500 pl-4 italic text-neutral-300',
-    },
+    theme,
     nodes: [
         HeadingNode,
         QuoteNode,
@@ -169,11 +146,12 @@ const BlockEditor = ({ className }) => {
                 <LexicalComposer key={editorKey} initialConfig={currentEditorConfig}>
                     <div className="h-full flex flex-col">
                         <ToolbarPlugin handleSave={handleContentSave} saveStatus={saveStatus} block={activeBlock} />
-                        <div className="relative flex-1 min-h-0 overflow-auto bg-neutral-50 dark:bg-neutral-700 max-w-none prose dark:prose-invert">
+                        <div className="relative flex-1 min-h-0 overflow-auto max-w-none">
+                        {/*<div className="relative flex-1 min-h-0 overflow-auto bg-neutral-50 dark:bg-neutral-700 max-w-none prose dark:prose-invert">*/}
                             <RichTextPlugin
                                 contentEditable={
                                     <ContentEditable
-                                        className="h-full min-h-full outline-none p-4 text-neutral-950 dark:text-neutral-100 [&_li:has(>ul)]:!list-none [&_ul]:list-disc [&_ul_ul]:list-circle [&_ul_ul_ul]:list-square"
+                                        className="h-full min-h-full outline-none p-4"
                                     />
                                 }
                                 ErrorBoundary={LexicalErrorBoundary}

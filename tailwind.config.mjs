@@ -53,19 +53,8 @@ export default {
       colors: {
         // Your existing colors...
         ...colors,
-        background: {
-          DEFAULT: 'var(--background)',
-          secondary: 'var(--background-secondary)',
-        },
-        text: {
-          DEFAULT: 'var(--text)',
-          secondary: 'var(--text-secondary)',
-        },
-        border: 'var(--border)',
       },
     },
   },
-  plugins: [
-    require('@tailwindcss/typography'),
-  ],
+  plugins: [],
 }

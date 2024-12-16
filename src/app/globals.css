@@ -6,24 +6,24 @@
 @layer base {
   /* Headings */
   h1 {
-    @apply text-4xl font-bold tracking-tight text-text dark:text-text;
+    @apply text-4xl font-bold tracking-tight;
   }
 
   h2 {
-    @apply text-3xl font-semibold tracking-tight text-text dark:text-text;
+    @apply text-3xl font-semibold tracking-tight;
   }
 
   h3 {
-    @apply text-2xl font-semibold text-text dark:text-text;
+    @apply text-2xl font-semibold;
   }
 
   h4 {
-    @apply font-semibold text-text dark:text-text;
+    @apply font-semibold;
   }
 
   /* Body text */
   p {
-    @apply text-base text-text-secondary dark:text-text-secondary;
+    @apply text-base;
   }
 
   /* Links */
@@ -33,17 +33,17 @@
 
   /* Code */
   code {
-    @apply font-mono bg-background-secondary dark:bg-background-secondary px-1.5 py-0.5 rounded text-sm text-text dark:text-text;
+    @apply font-mono px-1.5 py-0.5 rounded text-sm;
   }
 
   /* Small text */
   small {
-    @apply text-sm text-text-secondary dark:text-text-secondary;
+    @apply text-sm;
   }
 
   /* Form elements */
   label {
-    @apply text-sm font-medium text-text-secondary dark:text-text-secondary;
+    @apply text-sm font-medium;
   }
 
   input, textarea, select {
