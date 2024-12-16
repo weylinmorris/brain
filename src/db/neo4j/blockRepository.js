@@ -128,7 +128,7 @@ export class BlockRepository {
                 const batchPromises = batch.map(async (input, index) => {
                     return limit(async () => {
                         const blockId = uuidv4();
-                        const plainText = this.getPlainText(input.content);
+                        const plainText = getPlainText(input.content);
 
                         await sleep(timePerRequest * index);
 
@@ -199,10 +199,12 @@ export class BlockRepository {
 
                 // Queue similarity computations
                 console.log(`Computing similarities for batch ${Math.floor(i/batchSize) + 1}...`);
-                const similarityPromises = batchParams.map(({ blockId }) =>
-                    this.similarityRepository.computeSimilaritiesForBlock(blockId)
-                        .catch(error => console.error('Failed to compute similarities for block:', blockId, error))
-                );
+                const similarityPromises = batchParams.map(({ blockId }, i) =>{
+                    setTimeout(() => {
+                        this.smartLinkRepository.traceBlockLinks(blockId)
+                            .catch(error => console.error('Failed to compute similarities:', error))
+                    }, timePerRequest * i);
+                });
 
                 // Process similarities in background
                 Promise.all(similarityPromises)

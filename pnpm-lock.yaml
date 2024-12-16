@@ -11,6 +11,9 @@ importers:
       '@lexical/code':
         specifier: ^0.21.0
         version: 0.21.0
+      '@lexical/headless':
+        specifier: ^0.21.0
+        version: 0.21.0
       '@lexical/link':
         specifier: ^0.21.0
         version: 0.21.0
@@ -299,6 +302,9 @@ packages:
 
   '@lexical/hashtag@0.21.0':
     resolution: {integrity: sha512-O4dxcZNq1Xm45HLoRifbGAYvQkg3qLoBc6ibmHnDqZL5mQDsufnH6QEKWfgDtrvp9++3iqsSC+TE7VzWIvA7ww==}
+
+  '@lexical/headless@0.21.0':
+    resolution: {integrity: sha512-7/eEz6ed39MAg34c+rU7xUn46UV4Wdt5dEZwsdBzuflWhpNeUscQmkw8wIoFhEhJdCc+ZbB17CnjJlUZ1RxHvg==}
 
   '@lexical/history@0.21.0':
     resolution: {integrity: sha512-Sv2sici2NnAfHYHYRSjjS139MDT8fHP6PlYM2hVr+17dOg7/fJl22VBLRgQ7/+jLtAPxQjID69jvaMlOvt4Oog==}
@@ -2142,6 +2148,10 @@ snapshots:
   '@lexical/hashtag@0.21.0':
     dependencies:
       '@lexical/utils': 0.21.0
+      lexical: 0.21.0
+
+  '@lexical/headless@0.21.0':
+    dependencies:
       lexical: 0.21.0
 
   '@lexical/history@0.21.0':

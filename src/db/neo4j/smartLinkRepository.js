@@ -58,6 +58,8 @@ export class SmartLinkRepository {
                         similarity,
                     });
                 }
+
+                await new Promise(resolve => setTimeout(resolve, 100)); // Slow down to avoid rate limits
             }
             console.log(`Similarities updated for block ${blockId}`);
         } catch (error) {

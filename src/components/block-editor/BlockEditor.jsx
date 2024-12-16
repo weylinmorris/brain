@@ -145,10 +145,10 @@ const BlockEditor = ({ className }) => {
         };
     }, [debouncedSave]);
 
-    if (!mounted) return <div className="p-4 text-neutral-600 dark:text-neutral-400">Loading editor...</div>;
-    if (!activeBlockId) return <div className="p-4 text-neutral-600 dark:text-neutral-400">No block selected</div>;
-    if (isLoading) return <div className="p-4 text-neutral-600 dark:text-neutral-400">Loading block data...</div>;
-    if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
+    if (!mounted) return <div className="p-12 font-bold text-center text-neutral-500 dark:text-neutral-400">Loading editor...</div>;
+    if (!activeBlockId) return <div className="p-12 font-bold text-center text-neutral-500 dark:text-neutral-400">No block selected</div>;
+    if (isLoading) return <div className="p-12 font-bold text-center text-neutral-500 dark:text-neutral-400">Loading block data...</div>;
+    if (error) return <div className="p-12 font-bold text-center text-red-500">Error: {error}</div>;
 
     const currentEditorConfig = {
         ...editorConfig,
