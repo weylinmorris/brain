@@ -6,7 +6,7 @@
     --editor-quote-border: theme('colors.neutral.200');
     --editor-theme-h1-color: theme('colors.neutral.900');
     --editor-theme-h2-color: theme('colors.neutral.800');
-    --editor-theme-h3-color: theme('colors.neutral.700');
+    --editor-theme-h3-color: theme('colors.neutral.800');
     --editor-theme-text-color: theme('colors.neutral.800');
     --editor-theme-strikethrough-color: theme('colors.neutral.500');
     --editor-theme-code-color: theme('colors.neutral.800');
@@ -19,7 +19,7 @@
     --editor-quote-border: theme('colors.neutral.500');
     --editor-theme-h1-color: theme('colors.neutral.100');
     --editor-theme-h2-color: theme('colors.neutral.200');
-    --editor-theme-h3-color: theme('colors.neutral.300');
+    --editor-theme-h3-color: theme('colors.neutral.200');
     --editor-theme-text-color: theme('colors.neutral.200');
     --editor-theme-strikethrough-color: theme('colors.neutral.500');
     --editor-theme-code-color: theme('colors.neutral.200');
@@ -33,6 +33,7 @@
     text-align: right;
 }
 .EditorTheme__paragraph {
+    color: var(--editor-theme-text-color);
     margin: 0;
     position: relative;
 }
@@ -48,10 +49,12 @@
     padding-left: 16px;
 }
 .EditorTheme__h1 {
-    font-size: 24px;
+    font-size: 28px;
     color: var(--editor-theme-h1-color);
     font-weight: 400;
     margin: 0;
+    padding-top: 2em;
+    padding-bottom: 0.5em;
 }
 .EditorTheme__h2 {
     font-size: 18px;
@@ -59,12 +62,16 @@
     font-weight: 700;
     margin: 0;
     text-transform: uppercase;
+    padding-top: 2em;
+    padding-bottom: 0.5em;
 }
 .EditorTheme__h3 {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--editor-theme-h3-color);
     margin: 0;
     text-transform: uppercase;
+    padding-top: 2em;
+    padding-bottom: 0.5em;
 }
 .EditorTheme__indent {
     --lexical-indent-base-value: 40px;
@@ -192,7 +199,7 @@
     }
 }
 .EditorTheme__code {
-    background-color: rgb(240, 242, 245);
+    background-color: var(--editor-theme-code-background);
     font-family: Menlo, Consolas, Monaco, monospace;
     display: block;
     padding: 8px 8px 8px 52px;

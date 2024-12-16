@@ -147,7 +147,6 @@ const BlockEditor = ({ className }) => {
                     <div className="h-full flex flex-col">
                         <ToolbarPlugin handleSave={handleContentSave} saveStatus={saveStatus} block={activeBlock} />
                         <div className="relative flex-1 min-h-0 overflow-auto max-w-none">
-                        {/*<div className="relative flex-1 min-h-0 overflow-auto bg-neutral-50 dark:bg-neutral-700 max-w-none prose dark:prose-invert">*/}
                             <RichTextPlugin
                                 contentEditable={
                                     <ContentEditable
