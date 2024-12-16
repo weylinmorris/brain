@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -12,54 +12,37 @@ import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin';
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { ListItemNode, ListNode } from "@lexical/list";
+import { CodeNode, CodeHighlightNode } from '@lexical/code';
 import { useBlocks, useActiveBlock } from "@/context/block";
+import _ from 'lodash';
 
 import ToolbarPlugin from './ToolbarPlugin';
 import {useAutoResizingTextArea} from "@/hooks/blockEditorUtilHooks.js";
 
 const editorConfig = {
-    namespace: 'BrainEditor',
-    theme: {
-        paragraph: 'mb-2',
-        heading: {
-            h1: 'text-3xl font-bold mb-4',
-            h2: 'text-2xl font-bold mb-3',
-            h3: 'text-xl font-bold mb-2',
-        },
-        text: {
-            bold: 'font-bold',
-            italic: 'italic',
-            underline: 'underline',
-            strikethrough: 'line-through',
-        },
-        list: {
-            ul: 'mb-2',  // Remove ml-4 since it's handled in globals.css
-            ol: 'list-decimal ml-4 mb-2',
-            listitem: 'mb-1',
-            nested: {
-                listitem: 'ml-4'
-            },
-            checklist: 'flex gap-2 items-start',
-        },
-        quote: 'border-l-4 border-neutral-500 pl-4 italic text-neutral-300',
-    },
-    onError: (error) => console.error(error),
-    nodes: [HeadingNode, ListNode, ListItemNode, QuoteNode],
+    nodes: [
+        HeadingNode,
+        QuoteNode,
+        ListItemNode,
+        ListNode,
+        CodeNode,
+        CodeHighlightNode,
+    ],
 };
 
 const BlockEditor = ({ className }) => {
     const [mounted, setMounted] = useState(false);
     const [editorKey, setEditorKey] = useState(0);
-    const { updateBlock, createBlock, isLoading, isSaving, error } = useBlocks();
+    const { updateBlock, isLoading, error } = useBlocks();
     const { activeBlock, activeBlockId } = useActiveBlock();
     const initialContentRef = useRef(null);
     const [title, setTitle] = useState(activeBlock?.title || '');
     const textareaRef = useAutoResizingTextArea(title);
+    const [saveStatus, setSaveStatus] = useState('saved');
 
     // Reset editor when active block changes
     useEffect(() => {
         setEditorKey(prev => prev + 1);
-        // Store the initial content of the new active block
         initialContentRef.current = activeBlock?.content || null;
         setTitle(activeBlock?.title || '');
     }, [activeBlockId, activeBlock]);
@@ -68,56 +51,77 @@ const BlockEditor = ({ className }) => {
         setMounted(true);
     }, []);
 
-    const handleSave = async (content) => {
+    const saveBlock = useCallback(async (newTitle, newContent) => {
         try {
-            // Parse the content to check if it's just an empty paragraph
-            const parsedContent = JSON.parse(content);
-            const isEmptyContent =
-                parsedContent.root.children.length === 0 ||
-                (parsedContent.root.children.length === 1 &&
-                    parsedContent.root.children[0].children.length === 0 &&
-                    parsedContent.root.children[0].type === 'paragraph');
+            if (!activeBlockId) return;
 
-            if (isEmptyContent) {
-                return;
+            // For content, check if it's just an empty paragraph
+            if (newContent) {
+                const parsedContent = JSON.parse(newContent);
+                const isEmptyContent =
+                    parsedContent.root.children.length === 0 ||
+                    (parsedContent.root.children.length === 1 &&
+                        parsedContent.root.children[0].children.length === 0 &&
+                        parsedContent.root.children[0].type === 'paragraph');
+
+                if (isEmptyContent) return;
             }
 
-            // Check if content has actually changed from the initial state
-            if (content === initialContentRef.current && title === activeBlock.title) {
-                return;
+            // Only save if something has changed
+            const contentChanged = newContent && newContent !== initialContentRef.current;
+            const titleChanged = newTitle !== activeBlock.title;
+
+            if (!contentChanged && !titleChanged) return;
+
+            setSaveStatus('saving');
+
+            await updateBlock({
+                id: activeBlockId,
+                title: newTitle || title,
+                content: newContent || activeBlock.content,
+            });
+
+            if (newContent) {
+                initialContentRef.current = newContent;
             }
 
-            if (activeBlockId) {
-                // Update existing block only if we have an active block
-                await updateBlock({
-                    id: activeBlockId,
-                    title,
-                    content,
-                });
-                initialContentRef.current = content;
-            }
+            setSaveStatus('saved');
         } catch (error) {
             console.error('Failed to save block:', error);
+            setSaveStatus('not-saved');
         }
+    }, [activeBlockId, activeBlock, title, updateBlock]);
+
+    // Keep the original debouncedSave as it was
+    const debouncedSave = useMemo(
+        () => _.debounce(saveBlock, 3000, { maxWait: 60000 }),
+        [activeBlockId] // Reset debounce when block changes
+    );
+
+    // Handle title changes
+    const handleTitleChange = (e) => {
+        const newTitle = e.target.value;
+        setTitle(newTitle);
+        debouncedSave(newTitle, null);
     };
 
-    if (!mounted) {
-        return <div className="p-4 text-neutral-400">Loading editor...</div>;
-    }
+    // Handle content changes
+    const handleContentSave = async (content) => {
+        debouncedSave(title, content);
+    };
 
-    if (!activeBlockId) {
-        return <div className="p-4 text-neutral-400">No block selected</div>;
-    }
+    // Clean up debounced save on unmount or block change
+    useEffect(() => {
+        return () => {
+            debouncedSave.cancel();
+        };
+    }, [debouncedSave]);
 
-    if (isLoading) {
-        return <div className="p-4 text-neutral-400">Loading block data...</div>;
-    }
+    if (!mounted) return <div className="p-4 text-neutral-600 dark:text-neutral-400">Loading editor...</div>;
+    if (!activeBlockId) return <div className="p-4 text-neutral-600 dark:text-neutral-400">No block selected</div>;
+    if (isLoading) return <div className="p-4 text-neutral-600 dark:text-neutral-400">Loading block data...</div>;
+    if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
 
-    if (error) {
-        return <div className="p-4 text-red-500">Error: {error}</div>;
-    }
-
-    // Create editor config with initial state if available
     const currentEditorConfig = {
         ...editorConfig,
         editorState: activeBlock.content || null,
@@ -128,42 +132,36 @@ const BlockEditor = ({ className }) => {
             <textarea
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-2xl font-bold mb-4 m-4 bg-transparent border-none outline-none resize-none text-neutral-50"
+                onChange={handleTitleChange}
+                className="w-full text-2xl font-bold mb-4 m-4 bg-transparent border-none outline-none resize-none text-neutral-800 dark:text-neutral-50"
                 placeholder="Untitled"
                 rows={1}
                 ref={textareaRef}
             />
 
-            <div className={`flex-1 min-h-0 mb-4 border border-neutral-600 rounded-md overflow-hidden ${className || ''}`}>
+            <div className={`flex-1 min-h-0 mb-4 border border-neutral-300 dark:border-neutral-600 rounded-md overflow-hidden ${className || ''}`}>
                 <LexicalComposer key={editorKey} initialConfig={currentEditorConfig}>
                     <div className="h-full flex flex-col">
-                        <ToolbarPlugin handleSave={handleSave}/>
-                        <div className="relative flex-1 min-h-0 overflow-auto bg-neutral-700 prose prose-invert prose-neutral max-w-none">
+                        <ToolbarPlugin handleSave={handleContentSave} saveStatus={saveStatus} block={activeBlock} />
+                        <div className="relative flex-1 min-h-0 overflow-auto bg-neutral-50 dark:bg-neutral-700 max-w-none prose dark:prose-invert">
                             <RichTextPlugin
                                 contentEditable={
                                     <ContentEditable
-                                        className="h-full min-h-full outline-none p-4 text-neutral-200 [&_li:has(>ul)]:!list-none [&_ul]:list-disc [&_ul_ul]:list-circle [&_ul_ul_ul]:list-square"
+                                        className="h-full min-h-full outline-none p-4 text-neutral-950 dark:text-neutral-100 [&_li:has(>ul)]:!list-none [&_ul]:list-disc [&_ul_ul]:list-circle [&_ul_ul_ul]:list-square"
                                     />
                                 }
                                 placeholder={
-                                    <div className="absolute top-4 left-4 text-neutral-500 pointer-events-none">
+                                    <div className="absolute top-4 left-4 text-neutral-600 dark:text-neutral-500 pointer-events-none">
                                         {"What's on your mind?"}
                                     </div>
                                 }
-                                onInput={(e) => console.log('Editor HTML:', e.target.innerHTML)}
                                 ErrorBoundary={LexicalErrorBoundary}
                             />
-                            <HistoryPlugin/>
-                            <AutoFocusPlugin/>
-                            <ListPlugin/>
-                            <CheckListPlugin/>
-                            <TabIndentationPlugin/>
-                            {isSaving && (
-                                <div className="absolute bottom-2 right-2 text-sm text-neutral-400">
-                                    Saving...
-                                </div>
-                            )}
+                            <HistoryPlugin />
+                            <AutoFocusPlugin />
+                            <ListPlugin />
+                            <CheckListPlugin />
+                            <TabIndentationPlugin />
                         </div>
                     </div>
                 </LexicalComposer>

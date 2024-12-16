@@ -24,7 +24,7 @@ function Main() {
     return (
         <div
             style={{ height: "calc(var(--vh, 1vh) * 100)" }}
-            className="w-full bg-neutral-800 flex flex-col overflow-hidden"
+            className="w-full bg-neutral-50 dark:bg-neutral-800 flex flex-col overflow-hidden"
         >
             <Search />
             <div className="flex-1 min-h-0">

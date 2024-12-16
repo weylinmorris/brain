@@ -5,6 +5,7 @@ import {useBlocks, useActiveBlock} from "@/context/block";
 import {useMemo, useState} from "react";
 import BlockPreview from '@/components/blocks/BlockPreview';
 import ContextMenu from '@/components/blocks/ContextMenu';
+import ThemeToggle from "@/components/theme/ThemeToggle.jsx";
 
 async function handleLogseqUpload(file) {
     const formData = new FormData();
@@ -100,11 +101,11 @@ function Sidebar() {
 
     return (
         <div style={{height: "calc(var(--vh, 1vh) * 100)"}}
-             className="px-2 py-4 bg-neutral-600 w-[40rem] flex flex-col text-neutral-50">
+             className="px-2 py-4 bg-neutral-100 dark:bg-neutral-600 w-[40rem] flex flex-col text-neutral-900 dark:text-neutral-50">
             <div className="flex-1 flex flex-col overflow-hidden">
                 <div>
                     <button
-                        className="w-full mb-2 font-bold bg-primary-800 text-neutral-100 rounded-md px-4 py-2 hover:bg-primary-700 transition-colors duration-200 relative group"
+                        className="w-full mb-2 font-bold bg-primary-600 dark:bg-primary-800 text-neutral-100 rounded-md px-4 py-2 hover:bg-primary-700 dark:hover:bg-primary-700 relative group"
                         onClick={handleNewBlockClick}
                         title="Create a new page"
                     >
@@ -117,7 +118,7 @@ function Sidebar() {
                     <div className="flex flex-col">
                         <div
                             onClick={toggleRecentExpanded}
-                            className="flex justify-between items-center hover:bg-neutral-500 rounded-md px-4 py-2 hover:cursor-pointer">
+                            className="flex justify-between items-center hover:bg-neutral-200 dark:hover:bg-neutral-500 rounded-md px-4 py-2 hover:cursor-pointer">
                             <h4>Recent Notes</h4>
                             <ChevronUpIcon
                                 className={`h-5 w-5 transform transition-transform duration-200 ${
@@ -127,7 +128,7 @@ function Sidebar() {
                         </div>
                         <div className={`mt-2 overflow-y-auto ${
                             isRecentExpanded ? 'opacity-100 mb-4' : 'max-h-0 opacity-0 overflow-hidden'
-                        } transition-all duration-200`}>
+                        } duration-200`}>
                             {recentBlocks.map(block => (
                                 <div
                                     key={block.id}
@@ -148,7 +149,7 @@ function Sidebar() {
                     <div className="flex flex-col">
                         <div
                             onClick={toggleAllExpanded}
-                            className="flex justify-between items-center hover:bg-neutral-500 rounded-md px-4 py-2 hover:cursor-pointer">
+                            className="flex justify-between items-center hover:bg-neutral-200 dark:hover:bg-neutral-500 rounded-md px-4 py-2 hover:cursor-pointer">
                             <h4>All Notes</h4>
                             <ChevronUpIcon
                                 className={`h-5 w-5 transform transition-transform duration-200 ${
@@ -158,7 +159,7 @@ function Sidebar() {
                         </div>
                         <div className={`mt-2 ml-4 overflow-y-auto ${
                             isAllExpanded ? 'opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
-                        } transition-all duration-200`}>
+                        } duration-200`}>
                             {allBlocks.map(block => (
                                 <div
                                     key={block.id}
@@ -184,8 +185,10 @@ function Sidebar() {
                 </div>
             </div>
 
-            <div className="flex-0">
-                <label className="relative cursor-pointer">
+            <div className="flex-0 flex items-center space-x-2">
+                <ThemeToggle />
+
+                <label className="relative cursor-pointer flex-1">
                     <input
                         type="file"
                         className="hidden"
@@ -193,9 +196,9 @@ function Sidebar() {
                         onChange={handleFileChange}
                     />
                     <div
-                        className="p-4 font-bold bg-neutral-700  hover:bg-neutral-500 transition-colors duration-200 rounded-md flex items-center justify-center">
+                        className="p-4 font-bold bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300  dark:hover:bg-neutral-500 rounded-md flex items-center justify-center">
                         <Upload size={16}/>
-                        <p className="ml-6 text-sm">Import from Logseq</p>
+                        <p className="ml-6 text-xs">Import from Logseq</p>
                     </div>
                 </label>
             </div>

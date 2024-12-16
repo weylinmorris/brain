@@ -63,3 +63,7 @@ html, body {
   height: 100%; /* Ensure they fill the viewport */
 }
 
+.reset-tw,
+.reset-tw * {
+  all: revert !important;
+}

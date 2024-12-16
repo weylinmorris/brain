@@ -18,6 +18,7 @@ import {
 import {
     $getSelection,
     $isRangeSelection,
+    $createParagraphNode,
 } from 'lexical';
 import {
     $setBlocksType
@@ -38,6 +39,7 @@ import {
     Heading3,
     Undo,
     Redo,
+    Code,
 } from 'lucide-react';
 import SavePlugin from "@/components/block-editor/SavePlugin.jsx";
 
@@ -53,9 +55,10 @@ const Piclrow = () => {
     )
 }
 
-const ToolbarPlugin = ({handleSave}) => {
+const ToolbarPlugin = ({handleSave, saveStatus, block}) => {
     const [editor] = useLexicalComposerContext();
     const [activeStyles, setActiveStyles] = useState(new Set());
+    const [, setIsCodeBlock] = useState(false);
 
     // Format tracking
     editor.registerUpdateListener(({editorState}) => {
@@ -67,7 +70,13 @@ const ToolbarPlugin = ({handleSave}) => {
                 if (selection.hasFormat('italic')) styles.add('italic');
                 if (selection.hasFormat('underline')) styles.add('underline');
                 if (selection.hasFormat('strikethrough')) styles.add('strikethrough');
+                if (selection.hasFormat('code')) styles.add('code');
                 setActiveStyles(styles);
+
+                // Check if current selection is in a code block
+                const node = selection.anchor.getNode();
+                const parentNode = node.getParent();
+                setIsCodeBlock(parentNode?.getType?.() === 'code');
             }
         });
     });
@@ -87,7 +96,11 @@ const ToolbarPlugin = ({handleSave}) => {
         editor.update(() => {
             const selection = $getSelection();
             if ($isRangeSelection(selection)) {
-                $setBlocksType(selection, () => $createHeadingNode(headingType));
+                $setBlocksType(selection, () =>
+                    headingType === 'p'
+                        ? $createParagraphNode()
+                        : $createHeadingNode(headingType)
+                );
             }
         });
     };
@@ -121,8 +134,8 @@ const ToolbarPlugin = ({handleSave}) => {
     const ToolbarButton = ({ onClick, icon: Icon, isActive, tooltip }) => (
         <button
             onClick={onClick}
-            className={`p-2 rounded hover:bg-neutral-700 text-white transition-colors
-        ${isActive ? 'bg-neutral-600' : ''}`}
+            className={`p-2 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-50 
+                ${isActive ? 'bg-neutral-600' : ''}`}
             title={tooltip}
         >
             <Icon size={18} />
@@ -131,11 +144,11 @@ const ToolbarPlugin = ({handleSave}) => {
 
     // Divider component
     const Divider = () => (
-        <div className="h-6 w-px bg-neutral-600 mx-2" />
+        <div className="h-6 w-px bg-neutral-300 dark:bg-neutral-600 mx-2" />
     );
 
     return (
-        <div className="flex items-center p-2 bg-neutral-600 gap-1 flex-wrap">
+        <div className="flex items-center p-2 bg-neutral-50 dark:bg-neutral-600 gap-1 flex-wrap border-b border-neutral-300 dark:border-neutral-600">
             {/* History Controls */}
             <div className="flex items-center">
                 <ToolbarButton onClick={undo} icon={Undo} tooltip="Undo" />
@@ -169,6 +182,12 @@ const ToolbarPlugin = ({handleSave}) => {
                     icon={Strikethrough}
                     isActive={activeStyles.has('strikethrough')}
                     tooltip="Strikethrough"
+                />
+                <ToolbarButton
+                    onClick={() => formatText('code')}
+                    icon={Code}
+                    isActive={activeStyles.has('code')}
+                    tooltip="Inline Code"
                 />
             </div>
 
@@ -221,7 +240,7 @@ const ToolbarPlugin = ({handleSave}) => {
 
             <Divider/>
 
-            {/* Lists and Quote */}
+            {/* Lists, Quote, and Code Block */}
             <div className="flex items-center">
                 <ToolbarButton
                     onClick={() => toggleList('bullet')}
@@ -241,7 +260,7 @@ const ToolbarPlugin = ({handleSave}) => {
             </div>
 
             <div className="flex-1 flex justify-end">
-                <SavePlugin onSave={handleSave} />
+                <SavePlugin onSave={handleSave} saveStatus={saveStatus} block={block} />
             </div>
         </div>
     );
