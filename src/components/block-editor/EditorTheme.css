@@ -8,6 +8,7 @@
     --editor-theme-h2-color: theme('colors.neutral.800');
     --editor-theme-h3-color: theme('colors.neutral.700');
     --editor-theme-text-color: theme('colors.neutral.800');
+    --editor-theme-strikethrough-color: theme('colors.neutral.500');
     --editor-theme-code-color: theme('colors.neutral.800');
     --editor-theme-code-background: theme('colors.neutral.200');
 }
@@ -20,6 +21,7 @@
     --editor-theme-h2-color: theme('colors.neutral.200');
     --editor-theme-h3-color: theme('colors.neutral.300');
     --editor-theme-text-color: theme('colors.neutral.200');
+    --editor-theme-strikethrough-color: theme('colors.neutral.500');
     --editor-theme-code-color: theme('colors.neutral.200');
     --editor-theme-code-background: theme('colors.neutral.600');
 }
@@ -82,12 +84,14 @@
 
 .EditorTheme__textStrikethrough {
     text-decoration: line-through;
-    color: var(--editor-theme-text-color);
+    color: var(--editor-theme-strikethrough-color);
+    text-decoration-color: var(--editor-theme-strikethrough-color);
 }
 
 .EditorTheme__textUnderlineStrikethrough {
     text-decoration: underline line-through;
-    color: var(--editor-theme-text-color);
+    color: var(--editor-theme-strikethrough-color);
+    text-decoration-color: var(--editor-theme-strikethrough-color);
 }
 
 .EditorTheme__tabNode {
