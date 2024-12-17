@@ -5,22 +5,6 @@ export class SmartLinkRepository {
     constructor(neo4j, blockRepository) {
         this.neo4j = neo4j;
         this.blockRepository = blockRepository;
-
-        this.SEGMENTS = {
-            EARLY_MORNING: { start: 5, end: 8 },
-            MORNING: { start: 9, end: 11 },
-            MIDDAY: { start: 12, end: 14 },
-            AFTERNOON: { start: 15, end: 17 },
-            EVENING: { start: 18, end: 21 },
-            NIGHT: { start: 22, end: 4 }
-        };
-
-        this.SEASONS = {
-            SPRING: [3, 4, 5],
-            SUMMER: [6, 7, 8],
-            FALL: [9, 10, 11],
-            WINTER: [12, 1, 2]
-        };
     }
 
     async traceBlockLinks(blockId) {
@@ -74,44 +58,58 @@ export class SmartLinkRepository {
             const metadata = generateTimeMetadata(now);
 
             const query = `
-                MATCH (b:Block {id: $blockId})
-                
-                // Create a new time interaction node
-                CREATE (t:TimeInteraction {
-                    id: $interactionId,
-                    timestamp: datetime(),
-                    hour: $hour,
-                    minute: $minute,
-                    dayOfWeek: $dayOfWeek,
-                    daySegment: $daySegment,
-                    season: $season,
-                    isWeekend: $isWeekend,
-                    isWorkHours: $isWorkHours,
-                    actionType: $actionType
-                })
-                
-                // Create relationship with context
-                CREATE (b)-[r:TIME_INTERACTION]->(t)
-                
-                // Update running averages on the block
-                WITH b, t
-                OPTIONAL MATCH (b)-[:TIME_INTERACTION]->(prev:TimeInteraction)
-                WITH b, t, collect(prev) as prevInteractions
-                
-                SET b.timeMetadata = {
-                    commonHours: [hour in range(0,23) | size([p in prevInteractions WHERE p.hour = hour])],
-                    commonDays: [day in range(0,6) | size([p in prevInteractions WHERE p.dayOfWeek = day])],
-                    commonSegments: apoc.map.fromValues([
-                        'MORNING', size([p in prevInteractions WHERE p.daySegment = 'MORNING']),
-                        'AFTERNOON', size([p in prevInteractions WHERE p.daySegment = 'AFTERNOON']),
-                        'EVENING', size([p in prevInteractions WHERE p.daySegment = 'EVENING'])
-                    ]),
-                    totalInteractions: size(prevInteractions) + 1,
-                    lastInteraction: t.timestamp
-                }
-                
-                RETURN b.timeMetadata as metadata
-            `;
+            MATCH (b:Block {id: $blockId})
+            
+            // Create a new time interaction node
+            CREATE (t:TimeInteraction {
+                id: $interactionId,
+                timestamp: datetime(),
+                hour: $hour,
+                minute: $minute,
+                dayOfWeek: $dayOfWeek,
+                daySegment: $daySegment,
+                season: $season,
+                isWeekend: $isWeekend,
+                isWorkHours: $isWorkHours,
+                actionType: $actionType
+            })
+            
+            // Create relationship with context
+            CREATE (b)-[r:TIME_INTERACTION]->(t)
+            
+            // Update running averages on the block
+            WITH b, t
+            OPTIONAL MATCH (b)-[:TIME_INTERACTION]->(prev:TimeInteraction)
+            WITH b, t, collect(prev) as prevInteractions
+            
+            SET b += {
+                commonHours: [hour in range(0,23) | size([p in prevInteractions WHERE p.hour = hour])],
+                commonDays: [day in range(0,6) | size([p in prevInteractions WHERE p.dayOfWeek = day])],
+                segmentEarlyMorning: size([p in prevInteractions WHERE p.daySegment = 'EARLY_MORNING']),
+                segmentMorning: size([p in prevInteractions WHERE p.daySegment = 'MORNING']),
+                segmentMidday: size([p in prevInteractions WHERE p.daySegment = 'MIDDAY']),
+                segmentAfternoon: size([p in prevInteractions WHERE p.daySegment = 'AFTERNOON']),
+                segmentEvening: size([p in prevInteractions WHERE p.daySegment = 'EVENING']),
+                segmentNight: size([p in prevInteractions WHERE p.daySegment = 'NIGHT']),
+                totalInteractions: size(prevInteractions) + 1,
+                lastInteraction: t.timestamp
+            }
+            
+            RETURN {
+                commonHours: b.commonHours,
+                commonDays: b.commonDays,
+                commonSegments: {
+                    EARLY_MORNING: b.segmentEarlyMorning,
+                    MORNING: b.segmentMorning,
+                    MIDDAY: b.segmentMidday,
+                    AFTERNOON: b.segmentAfternoon,
+                    EVENING: b.segmentEvening,
+                    NIGHT: b.segmentNight
+                },
+                totalInteractions: b.totalInteractions,
+                lastInteraction: b.lastInteraction
+            } as metadata
+        `;
 
             return await this.neo4j.executeWrite(query, {
                 blockId,

@@ -1,3 +1,19 @@
+const SEGMENTS = {
+    EARLY_MORNING: { start: 5, end: 8 },
+    MORNING: { start: 9, end: 11 },
+    MIDDAY: { start: 12, end: 14 },
+    AFTERNOON: { start: 15, end: 17 },
+    EVENING: { start: 18, end: 21 },
+    NIGHT: { start: 22, end: 4 }
+};
+
+const SEASONS = {
+    SPRING: [3, 4, 5],
+    SUMMER: [6, 7, 8],
+    FALL: [9, 10, 11],
+    WINTER: [12, 1, 2]
+};
+
 export function cosineSimilarity(embeddingA, embeddingB) {
     if (!Array.isArray(embeddingA) || !Array.isArray(embeddingB)) {
         throw new Error('Both embeddings must be arrays.');
@@ -23,16 +39,16 @@ export function generateTimeMetadata(date) {
     const dayOfWeek = date.getDay(); // 0-6, 0 is Sunday
     const month = date.getMonth() + 1;
 
-    const daySegment = Object.keys(this.SEGMENTS).find(segment => {
-        const { start, end } = this.SEGMENTS[segment];
+    const daySegment = Object.keys(SEGMENTS).find(segment => {
+        const { start, end } = SEGMENTS[segment];
         if (end < start) { // Handles overnight segments
             return hour >= start || hour <= end;
         }
         return hour >= start && hour <= end;
     });
 
-    const season = Object.keys(this.SEASONS).find(s =>
-        this.SEASONS[s].includes(month)
+    const season = Object.keys(SEASONS).find(s =>
+        SEASONS[s].includes(month)
     );
 
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;

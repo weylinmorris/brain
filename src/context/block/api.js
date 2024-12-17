@@ -80,3 +80,15 @@ export async function deleteBlock(id) {
 
     return await response.json();
 }
+
+export async function traceTimeInteraction(id) {
+    const response = await fetch(`/api/metrics/time/${id}`, {
+        method: 'POST',
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+}

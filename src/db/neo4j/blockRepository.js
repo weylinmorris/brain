@@ -2,6 +2,7 @@ import {v4 as uuidv4} from 'uuid';
 import OpenAI from "openai";
 import pLimit from 'p-limit';
 import {getPlainText} from "@/db/neo4j/utils.js";
+import {db} from "@/db/client.js";
 
 const RATE_LIMIT = 80;
 const PERIOD = 60 * 1000; // 1 minute in milliseconds
@@ -73,6 +74,9 @@ export class BlockRepository {
 
             this.smartLinkRepository.traceBlockLinks(block['block'].id)
                 .catch(error => console.error('Failed to compute similarities:', error));
+
+            this.smartLinkRepository.traceTime(block['block'].id, 'CREATE')
+                .catch(error => console.error('Failed to save time data:', error));
 
             return {
                 id: block['block'].id,
@@ -465,6 +469,9 @@ export class BlockRepository {
 
             this.smartLinkRepository.traceBlockLinks(block['block'].id)
                 .catch(error => console.error('Failed to compute similarities:', error));
+
+            this.smartLinkRepository.traceTime(block['block'].id, 'EDIT')
+                .catch(error => console.error('Failed to save time data:', error));
 
             return {
                 id: block['block'].id,
