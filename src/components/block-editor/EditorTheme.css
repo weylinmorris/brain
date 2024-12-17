@@ -27,9 +27,11 @@
 }
 
 .EditorTheme__ltr {
+    color: var(--editor-theme-text-color);
     text-align: left;
 }
 .EditorTheme__rtl {
+    color: var(--editor-theme-text-color);
     text-align: right;
 }
 .EditorTheme__paragraph {
