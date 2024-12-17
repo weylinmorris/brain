@@ -163,39 +163,66 @@ export class SmartLinkRepository {
             if (changes.type.length === 0) return;
 
             const query = `
-                MATCH (b:Block {id: $blockId})
-                
-                CREATE (a:Activity {
-                    id: $activityId,
-                    timestamp: datetime(),
-                    changeTypes: $changeTypes,
-                    metrics: $metrics,
-                    patterns: $patterns
-                })
-                
-                CREATE (b)-[:ACTIVITY]->(a)
-                
-                // Update block's activity summary
-                WITH b, a
-                OPTIONAL MATCH (b)-[:ACTIVITY]->(prevActivity:Activity)
-                WITH b, a, collect(prevActivity) as previousActivities
-                
-                SET b.activityMetadata = {
-                    totalEdits: size(previousActivities) + 1,
-                    lastEditTimestamp: a.timestamp,
-                    editFrequency: size(previousActivities) + 1 / 
-                        duration.between(b.createdAt, datetime()).days,
-                    averageEditSize: apoc.agg.median([
-                        act in previousActivities | 
-                        abs(act.metrics.contentLengthDelta)
-                    ])
+            MATCH (b:Block {id: $blockId})
+            
+            CREATE (a:Activity {
+                id: $activityId,
+                timestamp: datetime(),
+                changeTypes: $changeTypes,
+                titleLengthDelta: $metrics.titleLengthDelta,
+                contentLengthDelta: $metrics.contentLengthDelta,
+                totalLength: $metrics.totalLength,
+                isExpansion: $patterns.isExpansion,
+                isRefinement: $patterns.isRefinement
+            })
+            
+            CREATE (b)-[:ACTIVITY]->(a)
+            
+            // Update block's activity summary
+            WITH b, a
+            OPTIONAL MATCH (b)-[:ACTIVITY]->(prevActivity:Activity)
+            WITH b, a, collect(prevActivity) as previousActivities
+            
+            WITH b, a, previousActivities,
+                 [act in previousActivities | abs(act.contentLengthDelta)] as editSizes,
+                 CASE 
+                    WHEN duration.between(b.createdAt, datetime()).days = 0 
+                    THEN 1 
+                    ELSE duration.between(b.createdAt, datetime()).days 
+                 END as daysSinceCreation
+            
+            SET b += {
+                totalEdits: size(previousActivities) + 1,
+                lastEditTimestamp: a.timestamp,
+                editFrequency: toFloat(size(previousActivities) + 1) / daysSinceCreation,
+                averageEditSize: CASE 
+                    WHEN size(editSizes) > 0 
+                    THEN toFloat(reduce(total = 0, size IN editSizes | total + size)) / size(editSizes)
+                    ELSE 0
+                END
+            }
+            
+            RETURN {
+                id: a.id,
+                timestamp: a.timestamp,
+                changeTypes: a.changeTypes,
+                metrics: {
+                    titleLengthDelta: a.titleLengthDelta,
+                    contentLengthDelta: a.contentLengthDelta,
+                    totalLength: a.totalLength
+                },
+                patterns: {
+                    isExpansion: a.isExpansion,
+                    isRefinement: a.isRefinement
+                },
+                blockMetadata: {
+                    totalEdits: b.totalEdits,
+                    lastEditTimestamp: b.lastEditTimestamp,
+                    editFrequency: b.editFrequency,
+                    averageEditSize: b.averageEditSize
                 }
-                
-                RETURN a {
-                    .*,
-                    blockMetadata: b.activityMetadata
-                } as activity
-            `;
+            } as activity
+        `;
 
             return await this.neo4j.executeWrite(query, {
                 blockId: updatedBlock.id,

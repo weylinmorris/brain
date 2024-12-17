@@ -440,6 +440,8 @@ export class BlockRepository {
             setClause.push('b.embeddings = $embeddings');
             params.embeddings = embeddings
 
+            const originalBlock = await this.getBlock(id);
+
             let query = `
                 MATCH (b:Block {id: $id})
             `;
@@ -472,6 +474,9 @@ export class BlockRepository {
 
             this.smartLinkRepository.traceTime(block['block'].id, 'EDIT')
                 .catch(error => console.error('Failed to save time data:', error));
+
+            this.smartLinkRepository.traceActivity(block['block'], originalBlock)
+                .catch(error => console.error('Failed to trace activity:', error));
 
             return {
                 id: block['block'].id,
