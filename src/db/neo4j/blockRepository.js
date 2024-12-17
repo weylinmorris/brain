@@ -26,7 +26,7 @@ export class BlockRepository {
         const blockId = uuidv4();
 
         try {
-            const plainText = getPlainText(input.content);
+            const plainText = `${input.title} ${getPlainText(input.content)}`
             const embeddingResponse = await this.openai.embeddings.create({
                 model: 'text-embedding-3-small',
                 input: plainText,
@@ -132,7 +132,7 @@ export class BlockRepository {
                 const batchPromises = batch.map(async (input, index) => {
                     return limit(async () => {
                         const blockId = uuidv4();
-                        const plainText = getPlainText(input.content);
+                        const plainText = `${input.title} ${getPlainText(input.content)}`
 
                         await sleep(timePerRequest * index);
 
@@ -426,7 +426,7 @@ export class BlockRepository {
                 params.type = updates.type;
             }
 
-            const plainText = getPlainText(updates.content);
+            const plainText = `${updates.title} ${getPlainText(updates.content)}`
             const embeddingResponse = await this.openai.embeddings.create({
                 model: 'text-embedding-3-small',
                 input: plainText,
