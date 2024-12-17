@@ -12,11 +12,11 @@ import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin';
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { ListItemNode, ListNode } from "@lexical/list";
-import { CodeNode, CodeHighlightNode } from '@lexical/code';
+import { CodeNode } from '@lexical/code';
 import { useBlocks, useActiveBlock } from "@/context/block";
 import _ from 'lodash';
 
-import ToolbarPlugin from './ToolbarPlugin';
+import ToolbarPlugin from '@/components/block-editor/plugins/ToolbarPlugin';
 import {useAutoResizingTextArea} from "@/hooks/blockEditorUtilHooks.js";
 import theme from "@/components/block-editor/EditorTheme.js";
 
@@ -29,7 +29,6 @@ const editorConfig = {
         ListItemNode,
         ListNode,
         CodeNode,
-        CodeHighlightNode,
     ],
 };
 
@@ -155,10 +154,10 @@ const BlockEditor = ({ className }) => {
                                 }
                                 ErrorBoundary={LexicalErrorBoundary}
                             />
-                            <HistoryPlugin />
                             <AutoFocusPlugin />
-                            <ListPlugin />
                             <CheckListPlugin />
+                            <HistoryPlugin />
+                            <ListPlugin />
                             <TabIndentationPlugin />
                         </div>
                     </div>

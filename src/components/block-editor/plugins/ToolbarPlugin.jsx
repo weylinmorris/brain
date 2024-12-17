@@ -41,7 +41,7 @@ import {
     Redo,
     Code,
 } from 'lucide-react';
-import SavePlugin from "@/components/block-editor/SavePlugin.jsx";
+import SavePlugin from "@/components/block-editor/plugins/SavePlugin.jsx";
 
 const Piclrow = () => {
     return (
