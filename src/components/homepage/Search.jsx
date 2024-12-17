@@ -219,7 +219,7 @@ function Search() {
                                 No results found
                             </div>
                         ) : (
-                            <div className="max-h-[40rem] overflow-y-auto divide-y divide-neutral-700">
+                            <div className="max-h-[40rem] overflow-y-auto divide-y divide-neutral-200 dark:divide-neutral-700">
                                 <ResultSection
                                     title="Exact Title Matches"
                                     results={titleMatches}
