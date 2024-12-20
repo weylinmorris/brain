@@ -48,7 +48,9 @@ export async function POST(request) {
             content: body.content ?? '',
             parentId: body.parentId ?? null,
             type: body.type ?? 'text',
-            isPage: body.isPage ?? false
+            isPage: body.isPage ?? false,
+            device: body.device ?? null,
+            location: body.location ?? null
         };
 
         const block = await db.blocks.createBlock(blockData);

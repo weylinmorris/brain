@@ -1,6 +1,14 @@
 import {useContext} from "react";
 import {BlockContext} from './BlockContext';
-import {searchBlocks, createBlock, updateBlock, deleteBlock, fetchRecommendedBlocks, traceTimeInteraction} from './api';
+import {
+    searchBlocks,
+    createBlock,
+    updateBlock,
+    deleteBlock,
+    fetchRecommendedBlocks,
+    traceInteractionTime,
+    traceInteractionContext
+} from './api';
 import {useToast} from "@/context/toast/ToastContext.js";
 
 export function useBlockState() {
@@ -18,7 +26,8 @@ export function useActiveBlock() {
 
     const setActiveBlock = async (id) => {
         dispatch({type: 'SET_ACTIVE_BLOCK', id});
-        traceTimeInteraction(id);
+        await traceInteractionTime(id);
+        await traceInteractionContext(id);
     };
 
     return {

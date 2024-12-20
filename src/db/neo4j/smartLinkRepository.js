@@ -238,41 +238,77 @@ export class SmartLinkRepository {
         }
     }
 
-    async traceContext(blockId, deviceType = 'unknown', location = 'unknown') {
+    async traceContext(blockId, deviceType = 'unknown', location = null) {
         try {
+            // Extract latitude and longitude if they exist and are valid numbers
+            const latitude = location?.lat;
+            const longitude = location?.lng;
+
+            // Only use the coordinates if both values are valid numbers
+            const hasValidCoordinates = typeof latitude === 'number' &&
+                typeof longitude === 'number' &&
+                !isNaN(latitude) &&
+                !isNaN(longitude);
+
+            console.log("===== TRACING CONTEXT =====")
+            console.log("blockId: ", blockId)
+            console.log("deviceType: ", deviceType)
+            console.log("latitude: ", latitude)
+            console.log("longitude: ", longitude)
+            console.log("hasValidCoordinates: ", hasValidCoordinates)
+            console.log("===== END TRACING CONTEXT =====")
+
             const query = `
-                MATCH (b:Block {id: $blockId})
-                
-                CREATE (c:Context {
-                    id: $contextId,
-                    timestamp: datetime(),
-                    deviceType: $deviceType,
-                    location: $location
-                })
-                
-                CREATE (b)-[:CONTEXT]->(c)
-                
-                // Update block's context patterns
-                WITH b, c
-                OPTIONAL MATCH (b)-[:CONTEXT]->(prevContext:Context)
-                WITH b, c, collect(prevContext) as previousContexts
-                
-                SET b.contextPatterns = {
-                    deviceTypes: apoc.agg.maxItems([ctx in previousContexts | ctx.deviceType], 3),
-                    locations: apoc.agg.maxItems([ctx in previousContexts | ctx.location], 3)
+            MATCH (b:Block {id: $blockId})
+            
+            CREATE (c:Context {
+                id: $contextId,
+                timestamp: datetime(),
+                deviceType: $deviceType,
+                latitude: $latitude,
+                longitude: $longitude
+            })
+            
+            CREATE (b)-[:CONTEXT]->(c)
+            
+            WITH b, c
+            OPTIONAL MATCH (b)-[:CONTEXT]->(prevContext:Context)
+            WITH b, c, prevContext
+            ORDER BY prevContext.timestamp DESC
+            WITH b, c,
+                 collect(DISTINCT prevContext.deviceType)[..3] as recentDeviceTypes,
+                 collect(DISTINCT prevContext.latitude)[..3] as recentLats,
+                 collect(DISTINCT prevContext.longitude)[..3] as recentLngs
+            
+            SET b.recentDeviceTypes = [x IN recentDeviceTypes WHERE x IS NOT NULL]
+            SET b.recentLocationLats = [x IN recentLats WHERE x IS NOT NULL]
+            SET b.recentLocationLngs = [x IN recentLngs WHERE x IS NOT NULL]
+            
+            RETURN c {
+                id: c.id,
+                timestamp: c.timestamp,
+                deviceType: c.deviceType,
+                location: CASE 
+                    WHEN c.latitude IS NOT NULL AND c.longitude IS NOT NULL 
+                    THEN {lat: c.latitude, lng: c.longitude}
+                    ELSE null 
+                END,
+                patterns: {
+                    deviceTypes: b.recentDeviceTypes,
+                    locations: [i IN range(0, size(b.recentLocationLats)-1) | {
+                        lat: b.recentLocationLats[i],
+                        lng: b.recentLocationLngs[i]
+                    }]
                 }
-                
-                RETURN c {
-                    .*,
-                    patterns: b.contextPatterns
-                } as context
-            `;
+            } as context
+        `;
 
             return await this.neo4j.executeWrite(query, {
                 blockId,
                 contextId: uuidv4(),
                 deviceType,
-                location
+                latitude: hasValidCoordinates ? latitude : null,
+                longitude: hasValidCoordinates ? longitude : null
             });
 
         } catch (error) {

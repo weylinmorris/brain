@@ -77,7 +77,7 @@ export async function PATCH(request, context) {
         if (body.type !== undefined) updates.type = body.type;
         if (body.isPage !== undefined) updates.isPage = body.isPage;
 
-        const block = await db.blocks.updateBlock(id, updates);
+        const block = await db.blocks.updateBlock(id, updates, body.device, body.location);
 
         return NextResponse.json(block);
     } catch (error) {

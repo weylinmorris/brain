@@ -1,3 +1,5 @@
+import {getDeviceLocation, getDeviceName} from "@/utils/metadataUtils.js";
+
 export async function fetchBlocks() {
     try {
         const response = await fetch('/api/blocks');
@@ -43,7 +45,11 @@ export async function createBlock(block) {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(block),
+        body: JSON.stringify({
+            ...block,
+            device: getDeviceName(),
+            location: await getDeviceLocation()
+        }),
     });
 
     if (!response.ok) {
@@ -59,7 +65,11 @@ export async function updateBlock(block) {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(block),
+        body: JSON.stringify({
+            ...block,
+            device: getDeviceName(),
+            location: await getDeviceLocation()
+        }),
     });
 
     if (!response.ok) {
@@ -81,9 +91,25 @@ export async function deleteBlock(id) {
     return await response.json();
 }
 
-export async function traceTimeInteraction(id) {
+export async function traceInteractionTime(id) {
     const response = await fetch(`/api/metrics/time/${id}`, {
         method: 'POST',
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+export async function traceInteractionContext(id) {
+    const response = await fetch(`/api/metrics/context/${id}`, {
+        method: 'POST',
+        body: JSON.stringify({
+            device: getDeviceName(),
+            location: await getDeviceLocation()
+        }),
     });
 
     if (!response.ok) {
