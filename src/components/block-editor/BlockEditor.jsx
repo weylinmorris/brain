@@ -30,6 +30,9 @@ const editorConfig = {
         ListNode,
         CodeNode,
     ],
+    onError: (error) => {
+        console.error('Error in LexicalComposer:', error);
+    }
 };
 
 const BlockEditor = ({ className }) => {
