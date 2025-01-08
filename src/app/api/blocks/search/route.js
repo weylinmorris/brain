@@ -13,9 +13,7 @@ export async function GET(request) {
         // Classify the query
         const queryType = await classifyQuery(query);
         
-        // Get relevant blocks with appropriate threshold
-        const threshold = queryType === 'question' ? 0.15 : 0.25;
-        const blocks = await db.blocks.searchBlocks(query, threshold);
+        const blocks = await db.blocks.searchBlocks(query, 25);
 
         // For questions, generate an answer using the relevant blocks
         if (queryType === 'question' && blocks.length > 0) {
