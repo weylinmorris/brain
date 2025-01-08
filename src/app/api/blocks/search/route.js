@@ -13,7 +13,7 @@ export async function GET(request) {
         // Classify the query
         const queryType = await classifyQuery(query);
         
-        const blocks = await db.blocks.searchBlocks(query, 25);
+        const blocks = await db.blocks.searchBlocks(query, 0.25);
 
         // For questions, generate an answer using the relevant blocks
         if (queryType === 'question' && blocks.length > 0) {
