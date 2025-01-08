@@ -133,7 +133,7 @@ const BlockEditor = ({ className }) => {
     };
 
     return (
-        <div className="px-4 h-full flex flex-col">
+        <div className="h-full flex flex-col">
             <textarea
                 type="text"
                 value={title}

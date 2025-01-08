@@ -212,7 +212,7 @@ function Search() {
                 />
             )}
 
-            <div className="w-full p-4 relative z-40" ref={searchRef}>
+            <div className="w-full relative z-40" ref={searchRef}>
                 <div className="relative">
                     <div className="relative flex items-center">
                         <input

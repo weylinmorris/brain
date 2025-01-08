@@ -6,11 +6,7 @@ const openai = new OpenAI(process.env.OPENAI_API_KEY);
  * Classifies a query as either a question or a search
  */
 export async function classifyQuery(query) {
-    console.log('\n[AI Classify] Starting classification for query:', query);
-    console.time('[AI Classify] Classification time');
-    
     try {
-        console.log(`[AI Classify] Using model: ${process.env.OPENAI_CHAT_MODEL}`);
         const response = await openai.chat.completions.create({
             model: process.env.OPENAI_CHAT_MODEL,
             messages: [
@@ -28,9 +24,6 @@ export async function classifyQuery(query) {
         });
 
         const classification = response.choices[0].message.content.trim().toLowerCase();
-        console.log('[AI Classify] Classification result:', classification);
-        console.timeEnd('[AI Classify] Classification time');
-        
         return classification;
     } catch (error) {
         console.error('[AI Classify] Error during classification:', {
@@ -38,7 +31,6 @@ export async function classifyQuery(query) {
             message: error.message,
             code: error.code
         });
-        console.timeEnd('[AI Classify] Classification time');
         // Default to search if classification fails
         return 'search';
     }
@@ -50,20 +42,12 @@ export async function classifyQuery(query) {
 export async function generateAnswer(question, relevantBlocks) {
     //Flatten the array of arrays and filter out empty arrays
     const blocks = relevantBlocks.flat().filter(block => block && block.title);
-    
-    console.log('\n[AI Answer] Starting answer generation for question:', question);
-    console.log(`[AI Answer] Using ${blocks.length} blocks as context`);
-    console.time('[AI Answer] Generation time');
 
     try {
         // Format the context from relevant blocks
         const context = blocks
             .map(block => `Title: ${block.title}\nContent: ${block.plainText}`)
             .join('\n\n');
-
-        console.log(`[AI Answer] Context length: ${context.length} characters`);
-        console.log('[AI Answer] Block titles:', blocks.map(b => b.title).join(', '));
-        console.log(`[AI Answer] Using model: ${process.env.OPENAI_ANSWER_MODEL}`);
 
         const response = await openai.chat.completions.create({
             model: process.env.OPENAI_ANSWER_MODEL,
@@ -86,9 +70,6 @@ export async function generateAnswer(question, relevantBlocks) {
         });
 
         const answer = response.choices[0].message.content;
-        console.log('[AI Answer] Generated answer length:', answer.length, 'characters');
-        console.log('[AI Answer] Generated answer:', answer);
-        console.timeEnd('[AI Answer] Generation time');
 
         const result = {
             answer,
@@ -105,7 +86,6 @@ export async function generateAnswer(question, relevantBlocks) {
             message: error.message,
             code: error.code
         });
-        console.timeEnd('[AI Answer] Generation time');
         throw new Error('Failed to generate answer from context');
     }
 }
