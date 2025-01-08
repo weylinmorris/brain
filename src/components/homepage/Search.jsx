@@ -7,6 +7,43 @@ function formatSimilarityPercent(similarity) {
     return `${Math.round(similarity * 100)}%`;
 }
 
+function AnswerDisplay({ answer, sources, onSourceClick }) {
+    // Function to parse and render text with clickable source citations
+    const renderAnswerWithSources = (text) => {
+        // Split by citation pattern [Title]
+        const parts = text.split(/(\[[^\]]+\])/g);
+        
+        return parts.map((part, index) => {
+            // Check if this part is a citation
+            if (part.match(/^\[[^\]]+\]$/)) {
+                const title = part.slice(1, -1); // Remove brackets
+                const source = sources.find(s => s.title === title);
+                
+                if (source) {
+                    return (
+                        <button
+                            key={index}
+                            onClick={() => onSourceClick(source.id)}
+                            className="text-blue-600 dark:text-blue-400 hover:underline font-medium mx-0.5"
+                        >
+                            {part}
+                        </button>
+                    );
+                }
+            }
+            return <span key={index}>{part}</span>;
+        });
+    };
+
+    return (
+        <div className="px-4 py-3">
+            <div className="text-sm text-neutral-700 dark:text-neutral-200 leading-relaxed">
+                {renderAnswerWithSources(answer)}
+            </div>
+        </div>
+    );
+}
+
 function Search() {
     const [query, setQuery] = useState('');
     const [isOpen, setIsOpen] = useState(false);
@@ -17,7 +54,7 @@ function Search() {
     const {setActiveBlock} = useActiveBlock();
 
     // Destructure the categorized results
-    const [titleMatches, contentMatches, similarityMatches] = searchResults || [[], [], []];
+    const [titleMatches, contentMatches, similarityMatches] = searchResults.blocks || [[], [], []];
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -29,6 +66,10 @@ function Search() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        console.log('searchResults', searchResults);
+    }, [searchResults]);
 
     const handleSearch = async () => {
         if (!query.trim()) return;
@@ -116,12 +157,12 @@ function Search() {
                 className="px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-500 cursor-pointer"
             >
                 <div className="flex justify-between items-start">
-                    <p className="text-sm font-bold text-neutral-700 dark:text-neutral-100">
+                    <div className="text-sm font-bold text-neutral-700 dark:text-neutral-100">
                         <HighlightedText
                             text={titlePreview.preview}
                             searchTerm={query}
                         />
-                    </p>
+                    </div>
                     <span className="text-xs text-neutral-300 ml-2">
                         {formatSimilarityPercent(similarity)} match
                     </span>
@@ -220,6 +261,13 @@ function Search() {
                             </div>
                         ) : (
                             <div className="max-h-[40rem] overflow-y-auto divide-y divide-neutral-200 dark:divide-neutral-700">
+                                {searchResults.type === 'question' && (
+                                    <AnswerDisplay
+                                        answer={searchResults.answer}
+                                        sources={searchResults.sources}
+                                        onSourceClick={handleResultClick}
+                                    />
+                                )}
                                 <ResultSection
                                     title="Exact Title Matches"
                                     results={titleMatches}

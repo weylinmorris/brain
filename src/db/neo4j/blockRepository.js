@@ -271,6 +271,7 @@ export class BlockRepository {
                     .id,
                     .title,
                     .content,
+                    .plainText,
                     .type,
                     .createdAt,
                     .updatedAt,
@@ -316,6 +317,7 @@ export class BlockRepository {
                     .id,
                     .title,
                     .content,
+                    .plainText,
                     .type,
                     .createdAt,
                     .updatedAt

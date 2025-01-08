@@ -1,6 +1,11 @@
 export const initialState = {
     blocks: [],
-    searchResults: [[], [], []],
+    searchResults: {
+        type: null,
+        answer: null,
+        sources: [],
+        blocks: [[], [], []]
+    },
     recommendedBlocks: [[], [], []],
     activeBlockId: null,
     isLoading: true,
