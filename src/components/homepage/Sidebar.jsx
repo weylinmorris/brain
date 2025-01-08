@@ -3,8 +3,7 @@
 import {ChevronUpIcon, Upload} from "lucide-react";
 import {useBlocks, useActiveBlock} from "@/context/block";
 import {useMemo, useState} from "react";
-import BlockPreview from '@/components/blocks/BlockPreview';
-import ContextMenu from '@/components/blocks/ContextMenu';
+import SwipeableNote from '@/components/blocks/SwipeableNote';
 import ThemeToggle from "@/components/theme/ThemeToggle.jsx";
 
 async function handleLogseqUpload(file) {
@@ -26,12 +25,11 @@ async function handleLogseqUpload(file) {
     }
 }
 
-function Sidebar() {
+function Sidebar({ setActiveTab }) {
     const {blocks, createBlock, deleteBlock} = useBlocks();
     const {setActiveBlock} = useActiveBlock();
     const [isRecentExpanded, setIsRecentExpanded] = useState(true);
     const [isAllExpanded, setIsAllExpanded] = useState(false);
-    const [contextMenu, setContextMenu] = useState(null);
 
     const recentBlocks = useMemo(() => {
         return [...blocks]
@@ -51,12 +49,14 @@ function Sidebar() {
             type: 'text'
         });
 
-        // Set as active page - the BlockEditor will automatically create the first block
+        // Set as active page and switch to editor tab
         setActiveBlock(newBlock.id);
+        setActiveTab('editor');
     }
 
     const handleBlockClick = (page) => {
         setActiveBlock(page.id);
+        setActiveTab('editor');
     };
 
     const handleContextMenu = (e, page) => {
@@ -68,11 +68,8 @@ function Sidebar() {
         });
     };
 
-    const handleDeleteBlock = async () => {
-        if (contextMenu) {
-            await deleteBlock(contextMenu.blockId);
-            setContextMenu(null);
-        }
+    const handleDeleteBlock = async (blockId) => {
+        await deleteBlock(blockId);
     };
 
     const toggleRecentExpanded = () => {
@@ -101,7 +98,7 @@ function Sidebar() {
 
     return (
         <div style={{height: "calc(var(--vh, 1vh) * 100)"}}
-             className="p-2 bg-neutral-100 dark:bg-neutral-600 w-96 flex flex-col flex-shrink-0 text-neutral-900 dark:text-neutral-50">
+             className="p-2 pb-[calc(1rem+3rem)] md:pb-2 bg-neutral-100 dark:bg-neutral-600 w-full md:w-96 flex flex-col flex-shrink-0 text-neutral-900 dark:text-neutral-50">
             <div className="flex-1 flex flex-col overflow-hidden">
                 <div>
                     <button
@@ -130,17 +127,14 @@ function Sidebar() {
                             isRecentExpanded ? 'opacity-100 mb-4' : 'max-h-0 opacity-0 overflow-hidden'
                         } duration-200`}>
                             {recentBlocks.map(block => (
-                                <div
+                                <SwipeableNote
                                     key={block.id}
-                                    onContextMenu={(e) => handleContextMenu(e, block)}
-                                >
-                                    <BlockPreview
-                                        block={block}
-                                        onClick={handleBlockClick}
-                                        showPreview={false}
-                                        showTime={false}
-                                    />
-                                </div>
+                                    block={block}
+                                    onClick={() => handleBlockClick(block)}
+                                    onDelete={handleDeleteBlock}
+                                    showPreview={false}
+                                    showTime={false}
+                                />
                             ))}
                         </div>
                     </div>
@@ -161,27 +155,17 @@ function Sidebar() {
                             isAllExpanded ? 'opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
                         } duration-200`}>
                             {allBlocks.map(block => (
-                                <div
+                                <SwipeableNote
                                     key={block.id}
-                                    onContextMenu={(e) => handleContextMenu(e, block)}
-                                >
-                                    <BlockPreview
-                                        block={block}
-                                        onClick={handleBlockClick}
-                                    />
-                                </div>
+                                    block={block}
+                                    onClick={() => handleBlockClick(block)}
+                                    onDelete={handleDeleteBlock}
+                                    showPreview={true}
+                                    showTime={false}
+                                />
                             ))}
                         </div>
                     </div>
-
-                    {contextMenu && (
-                        <ContextMenu
-                            x={contextMenu.x}
-                            y={contextMenu.y}
-                            onClose={() => setContextMenu(null)}
-                            onDelete={handleDeleteBlock}
-                        />
-                    )}
                 </div>
             </div>
 

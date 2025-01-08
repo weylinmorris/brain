@@ -17,12 +17,12 @@ const ContextMenu = ({ x, y, onClose, onDelete }) => {
     return (
         <div
             ref={menuRef}
-            className="absolute bg-neutral-700 rounded-md shadow-lg py-1 min-w-32 z-50"
-            style={{ top: y, left: x }}
+            className="fixed bg-neutral-100 dark:bg-neutral-700 rounded-md shadow-lg py-1 min-w-32 z-[9999]"
+            style={{ top: `${y}px`, left: `${x}px` }}
         >
             <button
                 onClick={onDelete}
-                className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-neutral-600 focus:outline-none"
+                className="w-full px-4 py-2 text-left text-sm text-red-500 dark:text-red-400 hover:bg-neutral-200 dark:hover:bg-neutral-600 focus:outline-none"
             >
                 Delete
             </button>

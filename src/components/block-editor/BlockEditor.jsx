@@ -144,7 +144,7 @@ const BlockEditor = ({ className }) => {
                 ref={textareaRef}
             />
 
-            <div className={`flex-1 min-h-0 mb-4 border border-neutral-300 dark:border-neutral-600 rounded-md overflow-hidden ${className || ''}`}>
+            <div className={`flex-1 min-h-0 border border-neutral-300 dark:border-neutral-600 rounded-md overflow-hidden ${className || ''}`}>
                 <LexicalComposer key={editorKey} initialConfig={currentEditorConfig}>
                     <div className="h-full flex flex-col">
                         <ToolbarPlugin handleSave={handleContentSave} saveStatus={saveStatus} block={activeBlock} />

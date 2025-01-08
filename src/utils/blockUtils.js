@@ -103,7 +103,7 @@ const generateContextualPreview = (content, searchTerm, previewLength = 100) => 
 // Get preview from block title
 export const getPreviewFromBlock = (block) => {
     try {
-        if (!block?.title) return 'Empty block';
+        if (!block?.title) return 'Empty Note';
         const firstLine = block.title.split('\n')[0];
         return firstLine.length > 40
             ? firstLine.substring(0, 40) + '...'
@@ -117,10 +117,12 @@ export const getPreviewFromBlock = (block) => {
 // Get preview from block content
 export const getPreviewFromBlockContent = (block, previewLength = 80) => {
     try {
+        if (!block?.content) return 'Empty note';
+
         const content = JSON.parse(block.content);
         const allContent = getAllLexicalContent(content);
 
-        if (!allContent) return 'Empty block';
+        if (!allContent) return 'Empty note';
 
         return allContent.length > previewLength
             ? allContent.substring(0, previewLength) + '...'
