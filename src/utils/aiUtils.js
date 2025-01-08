@@ -6,34 +6,8 @@ const openai = new OpenAI(process.env.OPENAI_API_KEY);
  * Classifies a query as either a question or a search
  */
 export async function classifyQuery(query) {
-    try {
-        const response = await openai.chat.completions.create({
-            model: process.env.OPENAI_CHAT_MODEL,
-            messages: [
-                {
-                    role: "system",
-                    content: "You are a query classifier. Determine if the input is a question or a file search. Respond with exactly 'question' or 'search'."
-                },
-                {
-                    role: "user",
-                    content: query
-                }
-            ],
-            temperature: 0,
-            max_tokens: 10
-        });
-
-        const classification = response.choices[0].message.content.trim().toLowerCase();
-        return classification;
-    } catch (error) {
-        console.error('[AI Classify] Error during classification:', {
-            name: error.name,
-            message: error.message,
-            code: error.code
-        });
-        // Default to search if classification fails
-        return 'search';
-    }
+    const trimmedQuery = query.trim();
+    return trimmedQuery.endsWith('?') ? 'question' : 'search';
 }
 
 /**
