@@ -88,6 +88,8 @@ function Search() {
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
+            e.target.blur();
+
             handleSearch();
         }
     };
@@ -218,11 +220,13 @@ function Search() {
                         <input
                             className="w-full mt-0.5 px-5 py-2 pl-10 bg-neutral-100 dark:bg-neutral-600 text-neutral-800 dark:text-neutral-50 rounded-md
                                      focus:outline-none focus:ring-2 focus:ring-neutral-400"
-                            type="text"
+                            type="search"
+                            autoComplete="off"
+                            enterKeyHint="Search"
                             placeholder="Search notes..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            onKeyPress={handleKeyPress}
+                            onKeyDown={handleKeyPress}
                             onFocus={() => query && setIsOpen(true)}
                         />
                         <SearchIcon
