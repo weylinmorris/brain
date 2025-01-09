@@ -98,7 +98,7 @@ function Sidebar({ setActiveTab }) {
 
     return (
         <div style={{height: "calc(var(--vh, 1vh) * 100)"}}
-             className="p-2 pb-[calc(1rem+3rem)] md:pb-2 bg-neutral-100 dark:bg-neutral-600 w-full md:w-96 flex flex-col flex-shrink-0 text-neutral-900 dark:text-neutral-50">
+             className="p-2 pb-24 md:pb-2 bg:neutral-50 md:bg-neutral-100 dark:bg-neutral-800 md:dark:bg-neutral-600 w-full md:w-96 flex flex-col flex-shrink-0 text-neutral-900 dark:text-neutral-50">
             <div className="flex-1 flex flex-col overflow-hidden">
                 <div>
                     <button
@@ -118,14 +118,14 @@ function Sidebar({ setActiveTab }) {
                             className="flex justify-between items-center hover:bg-neutral-200 dark:hover:bg-neutral-500 rounded-md px-4 py-2 hover:cursor-pointer">
                             <h4>Recent Notes</h4>
                             <ChevronUpIcon
-                                className={`h-5 w-5 transform transition-transform duration-200 ${
+                                className={`h-5 w-5 transform transition-transform duration-300 ${
                                     isRecentExpanded ? '' : 'rotate-180'
                                 }`}
                             />
                         </div>
                         <div className={`mt-2 overflow-y-auto ${
                             isRecentExpanded ? 'opacity-100 mb-4' : 'max-h-0 opacity-0 overflow-hidden'
-                        } duration-200`}>
+                        } duration-300`}>
                             {recentBlocks.map(block => (
                                 <SwipeableNote
                                     key={block.id}
@@ -146,14 +146,14 @@ function Sidebar({ setActiveTab }) {
                             className="flex justify-between items-center hover:bg-neutral-200 dark:hover:bg-neutral-500 rounded-md px-4 py-2 hover:cursor-pointer">
                             <h4>All Notes</h4>
                             <ChevronUpIcon
-                                className={`h-5 w-5 transform transition-transform duration-200 ${
+                                className={`h-5 w-5 transform transition-transform duration-300 ${
                                     isAllExpanded ? '' : 'rotate-180'
                                 }`}
                             />
                         </div>
                         <div className={`mt-2 ml-4 overflow-y-auto ${
                             isAllExpanded ? 'opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
-                        } duration-200`}>
+                        } duration-300`}>
                             {allBlocks.map(block => (
                                 <SwipeableNote
                                     key={block.id}
@@ -169,10 +169,10 @@ function Sidebar({ setActiveTab }) {
                 </div>
             </div>
 
-            <div className="flex-0 flex items-center space-x-2">
+            <div className="flex-0 flex items-center justify-end space-x-2">
                 <ThemeToggle />
 
-                <label className="relative cursor-pointer flex-1">
+                {/* <label className="relative cursor-pointer flex-1">
                     <input
                         type="file"
                         className="hidden"
@@ -184,7 +184,7 @@ function Sidebar({ setActiveTab }) {
                         <Upload size={16}/>
                         <p className="ml-6 text-xs">Import from Logseq</p>
                     </div>
-                </label>
+                </label> */}
             </div>
         </div>
     );

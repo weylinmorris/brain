@@ -2,8 +2,8 @@ import { Book, Edit, Lightbulb } from "lucide-react";
 
 export function BottomNav({ activeTab, setActiveTab }) {
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-neutral-100 dark:bg-neutral-600 border-t border-neutral-200 dark:border-neutral-500">
-      <div className="flex justify-around items-center h-12">
+    <div className="md:hidden fixed pb-7 bottom-0 left-0 right-0 bg-neutral-100 dark:bg-neutral-600 border-t border-neutral-200 dark:border-neutral-500">
+      <div className="flex justify-around items-center h-14">
         <button
           onClick={() => setActiveTab('notes')}
           className={`flex flex-col items-center justify-center w-full h-full ${
