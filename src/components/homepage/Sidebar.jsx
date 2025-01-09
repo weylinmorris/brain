@@ -144,7 +144,7 @@ function Sidebar({ setActiveTab }) {
                         <div
                             onClick={toggleAllExpanded}
                             className="flex justify-between items-center hover:bg-neutral-200 dark:hover:bg-neutral-500 rounded-md px-4 py-2 hover:cursor-pointer">
-                            <h4>All Notes</h4>
+                            <h4>All Notes ({allBlocks.length})</h4>
                             <ChevronUpIcon
                                 className={`h-5 w-5 transform transition-transform duration-300 ${
                                     isAllExpanded ? '' : 'rotate-180'
