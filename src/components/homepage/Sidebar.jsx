@@ -161,7 +161,7 @@ function Sidebar({ setActiveTab }) {
                                     onClick={() => handleBlockClick(block)}
                                     onDelete={handleDeleteBlock}
                                     showPreview={true}
-                                    showTime={false}
+                                    showTime={true}
                                 />
                             ))}
                         </div>
