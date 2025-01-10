@@ -151,11 +151,7 @@ function Search() {
     const HighlightedText = ({ text, searchTerm }: HighlightedTextProps) => {
         // Handle empty or null search terms
         if (!searchTerm) {
-            return (
-                <div className="max-w-full truncate whitespace-nowrap">
-                    <span>{text}</span>
-                </div>
-            );
+            return <span className="whitespace-pre-line">{text}</span>;
         }
 
         const lowerText = text.toLowerCase();
@@ -163,25 +159,19 @@ function Search() {
         const matchStart = lowerText.indexOf(lowerSearchTerm);
 
         if (matchStart === -1) {
-            return (
-                <div className="max-w-full truncate whitespace-nowrap">
-                    <span>{text}</span>
-                </div>
-            );
+            return <span className="whitespace-pre-line">{text}</span>;
         }
 
         const matchEnd = matchStart + searchTerm.length;
 
         return (
-            <div className="max-w-full truncate whitespace-nowrap">
-                <span>
-                    {text.slice(0, matchStart)}
-                    <span className="bg-yellow-300/30 text-yellow-800 dark:text-yellow-100">
-                        {text.slice(matchStart, matchEnd)}
-                    </span>
-                    {text.slice(matchEnd)}
+            <span className="whitespace-pre-line">
+                {text.slice(0, matchStart)}
+                <span className="bg-yellow-300/30 text-yellow-800 dark:text-yellow-100">
+                    {text.slice(matchStart, matchEnd)}
                 </span>
-            </div>
+                {text.slice(matchEnd)}
+            </span>
         );
     };
 
@@ -196,17 +186,19 @@ function Search() {
                 className="cursor-pointer px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-500"
             >
                 <div className="flex items-start justify-between">
-                    <div className="text-sm font-bold text-neutral-700 dark:text-neutral-100">
-                        <HighlightedText text={titlePreview.preview} searchTerm={query} />
+                    <div className="text-sm font-bold text-neutral-700 dark:text-neutral-100 min-w-0 flex-1">
+                        <div className="line-clamp-1">
+                            <HighlightedText text={titlePreview.preview} searchTerm={query} />
+                        </div>
                     </div>
-                    <span className="ml-2 text-xs text-neutral-300">
+                    <span className="ml-2 text-xs text-neutral-300 flex-shrink-0">
                         {formatSimilarityPercent(similarity)} match
                     </span>
                 </div>
-                <div className="mt-2 flex items-center justify-between space-x-4 text-sm text-neutral-500 dark:text-neutral-300">
-                    <span className="flex max-w-[80%] items-center">
+                <div className="mt-2 text-sm text-neutral-500 dark:text-neutral-300">
+                    <div className="line-clamp-3">
                         <HighlightedText text={contentPreview.preview} searchTerm={query} />
-                    </span>
+                    </div>
                 </div>
             </div>
         );

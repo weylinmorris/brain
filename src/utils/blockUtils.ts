@@ -20,11 +20,30 @@ const getAllLexicalContent = (content: LexicalContent): string => {
         .join(' ');
 };
 
-// Helper function to generate fixed-length contextual preview
+// Helper function to get balanced context around a match
+const getBalancedContext = (text: string, matchStart: number, matchLength: number, contextSize: number = 200): string => {
+    // Calculate how much context we can show on each side
+    const beforeContext = Math.min(matchStart, contextSize);
+    const afterContext = Math.min(text.length - (matchStart + matchLength), contextSize);
+
+    // Get the start and end positions
+    const start = Math.max(0, matchStart - beforeContext);
+    const end = Math.min(text.length, matchStart + matchLength + afterContext);
+
+    // Extract the text
+    let preview = text.slice(start, end);
+
+    // Add ellipsis if we're not at the boundaries
+    if (start > 0) preview = '...' + preview;
+    if (end < text.length) preview = preview + '...';
+
+    return preview;
+};
+
+// Helper function to generate contextual preview
 const generateContextualPreview = (
     content: string,
-    searchTerm: string,
-    previewLength = 100
+    searchTerm: string
 ): PreviewResult => {
     if (!content) {
         return {
@@ -34,19 +53,11 @@ const generateContextualPreview = (
         };
     }
 
-    // If no search term, return centered preview
+    // If no search term, return start of content
     if (!searchTerm) {
-        if (content.length <= previewLength) {
-            return {
-                preview: content,
-                matchStart: -1,
-                matchEnd: -1,
-            };
-        }
-
-        const start = 0;
+        const preview = content.slice(0, 300);
         return {
-            preview: content.substring(start, start + previewLength) + '...',
+            preview: preview + (content.length > 300 ? '...' : ''),
             matchStart: -1,
             matchEnd: -1,
         };
@@ -56,52 +67,26 @@ const generateContextualPreview = (
 
     // If no match found, return start of content
     if (matchIndex === -1) {
+        const preview = content.slice(0, 300);
         return {
-            preview: content.substring(0, previewLength) + '...',
+            preview: preview + (content.length > 300 ? '...' : ''),
             matchStart: -1,
             matchEnd: -1,
         };
     }
 
-    // Calculate the available space on each side of the match
-    const matchLength = searchTerm.length;
-    let leftPad = Math.floor((previewLength - matchLength) / 2);
-    let rightPad = previewLength - matchLength - leftPad;
+    // Get balanced context around the match
+    const preview = getBalancedContext(content, matchIndex, searchTerm.length);
 
-    // Calculate initial start and end positions
-    let start = matchIndex - leftPad;
-    let end = matchIndex + matchLength + rightPad;
-
-    // Adjust padding if we're near the edges
-    if (start < 0) {
-        // If start would be negative, adjust right padding
-        rightPad += Math.abs(start);
-        start = 0;
-        end = Math.min(content.length, previewLength);
-    } else if (end > content.length) {
-        // If end would exceed content length, adjust left padding
-        const excess = end - content.length;
-        start = Math.max(0, start - excess);
-        end = content.length;
-    }
-
-    // Get the preview text
-    const preview = content.slice(start, end);
-
-    // Add ellipsis and track if we added it at the start
-    const hasLeadingEllipsis = start > 0;
-    const hasTrailingEllipsis = end < content.length;
-    const finalPreview =
-        (hasLeadingEllipsis ? '...' : '') + preview + (hasTrailingEllipsis ? '...' : '');
-
-    // Calculate match positions in the preview, accounting for leading ellipsis
-    const ellipsisOffset = hasLeadingEllipsis ? 3 : 0;
-    const previewMatchStart = matchIndex - start + ellipsisOffset;
+    // Calculate the new match position relative to our preview
+    const previewMatchStart = preview.startsWith('...') ? 
+        preview.toLowerCase().indexOf(searchTerm.toLowerCase()) :
+        matchIndex;
 
     return {
-        preview: finalPreview,
+        preview,
         matchStart: previewMatchStart,
-        matchEnd: previewMatchStart + matchLength,
+        matchEnd: previewMatchStart + searchTerm.length,
     };
 };
 
@@ -109,8 +94,7 @@ const generateContextualPreview = (
 export const getPreviewFromBlock = (block: Block): string => {
     try {
         if (!block?.title) return 'Empty Note';
-        const firstLine = block.title.split('\n')[0];
-        return firstLine.length > 40 ? firstLine.substring(0, 40) + '...' : firstLine;
+        return block.title;
     } catch (error) {
         console.error('Error generating preview:', error);
         return 'Error generating preview';
@@ -118,7 +102,7 @@ export const getPreviewFromBlock = (block: Block): string => {
 };
 
 // Get preview from block content
-export const getPreviewFromBlockContent = (block: Block, previewLength = 80): string => {
+export const getPreviewFromBlockContent = (block: Block): string => {
     try {
         if (!block?.content) return 'Empty note';
 
@@ -126,10 +110,7 @@ export const getPreviewFromBlockContent = (block: Block, previewLength = 80): st
         const allContent = getAllLexicalContent(content);
 
         if (!allContent) return 'Empty note';
-
-        return allContent.length > previewLength
-            ? allContent.substring(0, previewLength) + '...'
-            : allContent;
+        return allContent;
     } catch (error) {
         console.error('Error parsing Lexical content:', error);
         return 'Error parsing content';
@@ -139,11 +120,11 @@ export const getPreviewFromBlockContent = (block: Block, previewLength = 80): st
 // Get contextual preview from block title
 export const getContextualPreviewTitle = (
     block: Block,
-    searchTerm: string,
-    previewLength = 100
+    searchTerm: string
 ): PreviewResult | string => {
     try {
-        return generateContextualPreview(block.title, searchTerm, previewLength);
+        if (!block?.title) return 'Empty Note';
+        return generateContextualPreview(block.title, searchTerm);
     } catch (error) {
         console.error('Error generating contextual preview:', error);
         return 'Error generating preview';
@@ -153,14 +134,13 @@ export const getContextualPreviewTitle = (
 // Get contextual preview from block content
 export const getContextualPreviewContent = (
     block: Block,
-    searchTerm: string,
-    previewLength = 100
+    searchTerm: string
 ): PreviewResult | string => {
     try {
         const content = JSON.parse(block.content) as LexicalContent;
         const allContent = getAllLexicalContent(content);
-
-        return generateContextualPreview(allContent, searchTerm, previewLength);
+        if (!allContent) return 'Empty note';
+        return generateContextualPreview(allContent, searchTerm);
     } catch (error) {
         console.error('Error parsing Lexical content:', error);
         return 'Error parsing content';

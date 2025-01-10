@@ -58,10 +58,10 @@ export class BlockRepository implements BlockRepositoryInterface {
         const smartLinks = this.ensureSmartLinkRepository();
 
         try {
-            const plainText = `${input.title} ${getPlainText(input.content)}`;
+            const plainText = getPlainText(input.content);
             const embeddingResponse = await openai.embeddings.create({
                 model: 'text-embedding-3-small',
-                input: plainText,
+                input: `${input.title} ${plainText}`,
                 encoding_format: 'float',
             });
             const embeddings = embeddingResponse.data[0].embedding;
@@ -417,6 +417,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                     .id,
                     .title,
                     .content,
+                    .plainText,
                     .type,
                     .createdAt,
                     .updatedAt
@@ -431,6 +432,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                 id: record.block.id,
                 title: record.block.title,
                 content: record.block.content,
+                plainText: record.block.plainText,
                 type: record.block.type,
                 createdAt: new Date(record.block.createdAt),
                 updatedAt: new Date(record.block.updatedAt),
@@ -503,10 +505,10 @@ export class BlockRepository implements BlockRepositoryInterface {
         location?: GeoLocation
     ): Promise<Block> {
         try {
-            const plainText = `${updates.title} ${getPlainText(updates.content || '')}`;
+            const plainText = getPlainText(updates.content || '');
             const embeddingResponse = await this.ensureOpenAI().embeddings.create({
                 model: 'text-embedding-3-small',
-                input: plainText,
+                input: `${updates.title} ${plainText}`,
                 encoding_format: 'float',
             });
             const embeddings = embeddingResponse.data[0].embedding;
@@ -521,6 +523,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                     .id,
                     .title,
                     .content,
+                    .plainText,
                     .type,
                     .createdAt,
                     .updatedAt
@@ -563,6 +566,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                 id: block.id,
                 title: block.title,
                 content: block.content,
+                plainText: block.plainText,
                 type: block.type,
                 createdAt: new Date(block.createdAt),
                 updatedAt: new Date(block.updatedAt),
