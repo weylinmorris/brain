@@ -183,7 +183,7 @@ function Search() {
             <div
                 onClick={() => handleResultClick(block.id)}
                 key={block.id}
-                className="cursor-pointer px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-600"
+                className="cursor-pointer p-4 hover:bg-neutral-100 dark:hover:bg-neutral-600"
             >
                 <div className="flex items-start justify-between">
                     <div className="min-w-0 flex-1 text-sm font-bold text-neutral-700 dark:text-neutral-100">
@@ -215,7 +215,7 @@ function Search() {
         if (!results || results.length === 0) return null;
 
         return (
-            <div className="space-y-2 divide-y divide-neutral-200 py-2 dark:divide-neutral-600">
+            <div className="divide-y divide-neutral-200 py-2 dark:divide-neutral-600">
                 <div className="px-4 py-2 dark:bg-neutral-700/50">
                     <h3 className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-300">
                         {title}
