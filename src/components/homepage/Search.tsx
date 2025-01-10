@@ -216,12 +216,12 @@ function Search() {
 
         return (
             <div className="divide-y divide-neutral-200 dark:divide-neutral-600">
-                <div className="pb-2 pt-6 px-4 dark:bg-neutral-700/50">
+                <div className="pb-2 pt-6 px-4 dark:bg-neutral-700">
                     <h3 className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-300">
                         {title}
                     </h3>
                 </div>
-                <div>
+                <div className="divide-y divide-neutral-200 dark:divide-neutral-600">
                     {results.map((result) => (
                         <ResultBlock
                             key={result.id}
@@ -284,7 +284,7 @@ function Search() {
                     )}
 
                     <div
-                        className={`absolute mt-1 w-full overflow-hidden rounded-md bg-neutral-50 shadow-lg duration-200 ease-in-out dark:bg-neutral-800 ${isOpen ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'} `}
+                        className={`absolute mt-1 w-full overflow-hidden rounded-md bg-neutral-50 shadow-lg duration-200 ease-in-out dark:bg-neutral-700 ${isOpen ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'} `}
                     >
                         {query && !hasAnyResults ? (
                             <div className="px-4 py-3 text-center text-sm text-neutral-400">
