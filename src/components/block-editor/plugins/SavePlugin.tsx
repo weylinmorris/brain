@@ -70,7 +70,10 @@ function SavePlugin({ onSave, saveStatus, block }: { onSave: (json: string) => v
     };
 
     return (
-        <div className="flex items-center gap-2 text-xs text-neutral-400 mr-2">
+        <div 
+            className="flex items-center gap-2 text-xs text-neutral-400 mr-2 cursor-pointer hover:text-neutral-300"
+            onClick={saveContent}
+        >
             <div className="flex items-center gap-1.5">
                 {saveStatus === 'saving' ? (
                     <Loader2 size={12} className="animate-spin text-neutral-400" />
