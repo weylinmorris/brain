@@ -215,7 +215,7 @@ function Search() {
         if (!results || results.length === 0) return null;
 
         return (
-            <div className="divide-y divide-neutral-200 py-2 dark:divide-neutral-600">
+            <div className="divide-y divide-neutral-200 dark:divide-neutral-600">
                 <div className="px-4 py-2 dark:bg-neutral-700/50">
                     <h3 className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-300">
                         {title}
