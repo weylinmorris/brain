@@ -167,7 +167,7 @@ function Search() {
         return (
             <span className="whitespace-pre-line">
                 {text?.slice(0, matchStart)}
-                <span className="bg-yellow-300/30 text-yellow-800 dark:text-yellow-100">
+                <span className="bg-primary-200/50 dark:bg-primary-600/50 text-primary-900 dark:text-primary-100 font-bold rounded-sm px-1">
                     {text?.slice(matchStart, matchEnd)}
                 </span>
                 {text?.slice(matchEnd)}
