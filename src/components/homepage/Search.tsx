@@ -221,13 +221,15 @@ function Search() {
                         {title}
                     </h3>
                 </div>
-                {results.map((result) => (
-                    <ResultBlock
-                        key={result.id}
-                        block={result}
-                        similarity={result.similarity || 0}
-                    />
-                ))}
+                <div>
+                    {results.map((result) => (
+                        <ResultBlock
+                            key={result.id}
+                            block={result}
+                            similarity={result.similarity || 0}
+                        />
+                    ))}
+                </div>
             </div>
         );
     };
