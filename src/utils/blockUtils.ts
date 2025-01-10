@@ -123,8 +123,7 @@ export const getContextualPreviewTitle = (
     searchTerm: string
 ): PreviewResult | string => {
     try {
-        if (!block?.title) return 'Empty Note';
-        return generateContextualPreview(block.title, searchTerm);
+        return generateContextualPreview(block.title || 'Untitled', searchTerm);
     } catch (error) {
         console.error('Error generating contextual preview:', error);
         return 'Error generating preview';

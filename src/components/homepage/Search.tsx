@@ -154,23 +154,23 @@ function Search() {
             return <span className="whitespace-pre-line">{text}</span>;
         }
 
-        const lowerText = text.toLowerCase();
-        const lowerSearchTerm = searchTerm.toLowerCase();
-        const matchStart = lowerText.indexOf(lowerSearchTerm);
+        const lowerText = text?.toLowerCase();
+        const lowerSearchTerm = searchTerm?.toLowerCase();
+        const matchStart = lowerText?.indexOf(lowerSearchTerm);
 
         if (matchStart === -1) {
             return <span className="whitespace-pre-line">{text}</span>;
         }
 
-        const matchEnd = matchStart + searchTerm.length;
+        const matchEnd = matchStart + searchTerm?.length;
 
         return (
             <span className="whitespace-pre-line">
-                {text.slice(0, matchStart)}
+                {text?.slice(0, matchStart)}
                 <span className="bg-yellow-300/30 text-yellow-800 dark:text-yellow-100">
-                    {text.slice(matchStart, matchEnd)}
+                    {text?.slice(matchStart, matchEnd)}
                 </span>
-                {text.slice(matchEnd)}
+                {text?.slice(matchEnd)}
             </span>
         );
     };
@@ -188,7 +188,10 @@ function Search() {
                 <div className="flex items-start justify-between">
                     <div className="text-sm font-bold text-neutral-700 dark:text-neutral-100 min-w-0 flex-1">
                         <div className="line-clamp-1">
-                            <HighlightedText text={titlePreview.preview} searchTerm={query} />
+                            <HighlightedText 
+                                text={typeof titlePreview === 'string' ? titlePreview : titlePreview.preview || 'Untitled'} 
+                                searchTerm={query} 
+                            />
                         </div>
                     </div>
                     <span className="ml-2 text-xs text-neutral-300 flex-shrink-0">
@@ -282,7 +285,7 @@ function Search() {
                                 No results found
                             </div>
                         ) : (
-                            <div className="max-h-[40rem] divide-y divide-neutral-200 overflow-y-auto dark:divide-neutral-700">
+                            <div className="max-h-[40rem] divide-y divide-neutral-200 overflow-y-auto dark:divide-neutral-700 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar]:bg-transparent">
                                 {searchResults?.answer && (
                                     <AnswerDisplay
                                         answer={searchResults.answer}
