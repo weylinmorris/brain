@@ -50,12 +50,12 @@
     textarea,
     select {
         @apply text-sm focus:border-primary-600 focus:outline-none dark:focus:border-primary-400;
-        font-family: Inter, Helvetica, sans-serif;
+        /* font-family: Inter, Helvetica, sans-serif; */
     }
 }
 
 body {
-    font-family: Inter, Helvetica, sans-serif;
+    font-family: Helvetica, sans-serif;
 }
 
 html,

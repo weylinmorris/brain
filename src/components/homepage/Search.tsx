@@ -16,6 +16,7 @@ interface Source {
 }
 
 interface AnswerDisplayProps {
+    query: string;
     answer: string;
     sources: Source[];
     onSourceClick: (id: string) => void;
@@ -40,7 +41,7 @@ function formatSimilarityPercent(similarity: number): string {
     return `${Math.round(similarity * 100)}%`;
 }
 
-function AnswerDisplay({ answer, sources, onSourceClick }: AnswerDisplayProps) {
+function AnswerDisplay({ answer, sources, onSourceClick, query }: AnswerDisplayProps) {
     // Function to parse and render text with clickable source citations
     const renderAnswerWithSources = (text: string): ReactNode[] => {
         // Split by citation pattern [Title]
@@ -57,7 +58,7 @@ function AnswerDisplay({ answer, sources, onSourceClick }: AnswerDisplayProps) {
                         <button
                             key={index}
                             onClick={() => onSourceClick(source.id)}
-                            className="mx-0.5 font-medium text-blue-600 hover:underline dark:text-blue-400"
+                            className="mx-0.5 font-medium italic text-blue-600 hover:underline dark:text-blue-400"
                         >
                             {part}
                         </button>
@@ -69,8 +70,13 @@ function AnswerDisplay({ answer, sources, onSourceClick }: AnswerDisplayProps) {
     };
 
     return (
-        <div className="px-4 py-3">
-            <div className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-200">
+        <div className="divide-y divide-neutral-200 dark:divide-neutral-600">
+            <div className="pb-2 pt-6 px-4 dark:bg-neutral-700">
+                <h3 className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-300">
+                    {query}
+                </h3>
+            </div>
+            <div className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-200 p-4">
                 {renderAnswerWithSources(answer)}
             </div>
         </div>
@@ -294,6 +300,7 @@ function Search() {
                             <div className="max-h-[40rem] divide-neutral-200 overflow-y-auto dark:divide-neutral-700 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar]:bg-transparent">
                                 {searchResults?.answer && (
                                     <AnswerDisplay
+                                        query={query}
                                         answer={searchResults.answer}
                                         sources={searchResults.sources ?? []}
                                         onSourceClick={handleResultClick}
