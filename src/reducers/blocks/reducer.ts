@@ -64,7 +64,9 @@ export function blockReducer(state: BlockState, action: BlockAction): BlockState
         case 'SET_RECOMMENDED_BLOCKS':
             return {
                 ...state,
-                recommendedBlocks: action.blocks,
+                recommendedBlocks: Array.from(
+                    new Map(action.blocks.map(block => [block.id, block])).values()
+                ),
                 error: null
             };
 

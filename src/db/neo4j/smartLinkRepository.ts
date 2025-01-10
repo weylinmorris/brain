@@ -53,10 +53,22 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
                 }
 
                 if (relationshipType) {
+                    // First delete any existing similarity relationships
+                    await this.neo4j.executeWrite(`
+                        MATCH (a:Block {id: $idA})-[r:LINKED|SIMILAR|MAYBE_SIMILAR|POSSIBLY_SIMILAR]->(b:Block {id: $idB})
+                        DELETE r
+                    `, {
+                        idA: blockId,
+                        idB: otherBlock.id,
+                    });
+
+                    // Then create the new relationship
                     await this.neo4j.executeWrite(`
                         MATCH (a:Block {id: $idA}), (b:Block {id: $idB})
-                        MERGE (a)-[r:${relationshipType}]->(b)
-                        SET r.similarity = $similarity, r.similarityCheckedAt = datetime()
+                        CREATE (a)-[r:${relationshipType}]->(b)
+                        SET r.similarity = $similarity, 
+                            r.similarityCheckedAt = datetime(),
+                            r.lastUpdated = datetime()
                     `, {
                         idA: blockId,
                         idB: otherBlock.id,

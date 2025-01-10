@@ -30,7 +30,9 @@ export async function searchBlocks(query: string): Promise<SearchResults> {
 
 export async function fetchRecommendedBlocks(blockId: string): Promise<Block[]> {
     const response = await fetch(`/api/blocks/recommended/${blockId}`);
-    return handleResponse<Block[]>(response);
+    const blocks = await handleResponse<Block[]>(response);
+    // Deduplicate blocks by ID
+    return Array.from(new Map(blocks.map(block => [block.id, block])).values());
 }
 
 export async function createBlock(block: BlockInput): Promise<Block> {

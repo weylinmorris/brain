@@ -40,6 +40,31 @@ const editorConfig: EditorConfig = {
 const EditorContent = ({ handleContentSave }: { handleContentSave: (content: string) => void }) => {
     const [editor] = useLexicalComposerContext();
     
+    // Create a debounced save function
+    const debouncedHandleSave = useMemo(
+        () => _.debounce((content: string) => {
+            handleContentSave(content);
+        }, 3000, { leading: false, trailing: true }),
+        [handleContentSave]
+    );
+    
+    // Setup save on update
+    useEffect(() => {
+        const removeListener = editor.registerUpdateListener(({ editorState, dirtyElements, dirtyLeaves }) => {
+            // Only save if there are actual changes
+            if (dirtyElements.size > 0 || dirtyLeaves.size > 0) {
+                const json = JSON.stringify(editorState);
+                debouncedHandleSave(json);
+            }
+        });
+
+        // Cleanup
+        return () => {
+            debouncedHandleSave.cancel();
+            removeListener();
+        };
+    }, [editor, debouncedHandleSave]);
+    
     return (
         <ContentEditable
             className="h-full min-h-full outline-none p-4"
@@ -50,9 +75,10 @@ const EditorContent = ({ handleContentSave }: { handleContentSave: (content: str
                 
                 // Only save if we're not clicking the toolbar
                 if (!isClickingToolbar) {
+                    debouncedHandleSave.flush(); // Flush any pending saves
                     const editorState = editor.getEditorState();
                     const json = JSON.stringify(editorState);
-                    handleContentSave(json);
+                    handleContentSave(json); // Immediate save on blur
                 }
             }}
         />
@@ -77,18 +103,29 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ className }) => {
         }
     }, [title]);
 
-    // Reset editor when active block id changes
+    // Handle block and content updates
     useEffect(() => {
-        setEditorKey(prev => prev + 1);
-        initialContentRef.current = activeBlock?.content || null;
-        setTitle(activeBlock?.title || '');
-    }, [activeBlockId, activeBlock?.content, activeBlock?.title]);
+        console.log('Block or content update - activeBlockId:', activeBlockId);
+        
+        if (!activeBlock) return;
+
+        // Reset editor only when switching blocks
+        if (activeBlockId !== activeBlock.id) {
+            console.log('Switching blocks - resetting editor');
+            setEditorKey(prev => prev + 1);
+        }
+
+        // Update content and title
+        initialContentRef.current = activeBlock.content || null;
+        setTitle(activeBlock.title || '');
+    }, [activeBlockId, activeBlock]);
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
     const saveBlock = useCallback(async (newTitle: string | null, newContent: string | null) => {
+        console.log('Save triggered - Title:', newTitle?.slice(0, 20), 'Content length:', newContent?.length);
         try {
             if (!activeBlockId || !activeBlock) return;
 
