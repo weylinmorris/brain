@@ -183,7 +183,7 @@ function Search() {
             <div
                 onClick={() => handleResultClick(block.id)}
                 key={block.id}
-                className="cursor-pointer px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-500"
+                className="cursor-pointer px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-600"
             >
                 <div className="flex items-start justify-between">
                     <div className="text-sm font-bold text-neutral-700 dark:text-neutral-100 min-w-0 flex-1">
@@ -198,7 +198,7 @@ function Search() {
                         {formatSimilarityPercent(similarity)} match
                     </span>
                 </div>
-                <div className="mt-2 text-sm text-neutral-500 dark:text-neutral-300">
+                <div className="mt-1 text-sm text-neutral-500 dark:text-neutral-300">
                     <div className="line-clamp-3">
                         <HighlightedText text={contentPreview.preview} searchTerm={query} />
                     </div>
@@ -211,7 +211,7 @@ function Search() {
         if (!results || results.length === 0) return null;
 
         return (
-            <div className="py-2">
+            <div className="py-2 divide-y divide-neutral-200 dark:divide-neutral-600 space-y-2">
                 <div className="px-4 py-2 dark:bg-neutral-700/50">
                     <h3 className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-300">
                         {title}
