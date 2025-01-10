@@ -1,29 +1,14 @@
 import React, { useState } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import {
-    FORMAT_TEXT_COMMAND,
-    FORMAT_ELEMENT_COMMAND,
-    UNDO_COMMAND,
-    REDO_COMMAND,
-} from 'lexical';
-import {
-    $createHeadingNode,
-    $createQuoteNode,
-    HeadingTagType,
-} from '@lexical/rich-text';
+import { FORMAT_TEXT_COMMAND, FORMAT_ELEMENT_COMMAND, UNDO_COMMAND, REDO_COMMAND } from 'lexical';
+import { $createHeadingNode, $createQuoteNode, HeadingTagType } from '@lexical/rich-text';
 import {
     INSERT_ORDERED_LIST_COMMAND,
     INSERT_UNORDERED_LIST_COMMAND,
     REMOVE_LIST_COMMAND,
 } from '@lexical/list';
-import {
-    $getSelection,
-    $isRangeSelection,
-    $createParagraphNode,
-} from 'lexical';
-import {
-    $setBlocksType
-} from '@lexical/selection';
+import { $getSelection, $isRangeSelection, $createParagraphNode } from 'lexical';
+import { $setBlocksType } from '@lexical/selection';
 import {
     AlignLeft,
     AlignCenter,
@@ -42,7 +27,7 @@ import {
     Redo,
     Code,
 } from 'lucide-react';
-import SavePlugin from "./SavePlugin";
+import SavePlugin from './SavePlugin';
 import { Block } from '../../../types/block';
 
 type TextFormatType = 'bold' | 'italic' | 'underline' | 'strikethrough' | 'code';
@@ -50,33 +35,42 @@ type ElementFormatType = 'left' | 'center' | 'right';
 
 const Piclrow = () => {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-             className="lucide lucide-pilcrow">
-            <path d="M13 4v16"/>
-            <path d="M17 4v16"/>
-            <path d="M19 4H9.5a4.5 4.5 0 0 0 0 9H13"/>
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="lucide lucide-pilcrow"
+        >
+            <path d="M13 4v16" />
+            <path d="M17 4v16" />
+            <path d="M19 4H9.5a4.5 4.5 0 0 0 0 9H13" />
         </svg>
-    )
-}
+    );
+};
 
 const ToolbarPlugin = ({
     handleSave,
     saveStatus,
     block,
-    className
+    className,
 }: {
-    handleSave: (json: string) => void,
-    saveStatus: string,
-    block: Block,
-    className?: string
+    handleSave: (json: string) => void;
+    saveStatus: string;
+    block: Block;
+    className?: string;
 }) => {
     const [editor] = useLexicalComposerContext();
     const [activeStyles, setActiveStyles] = useState(new Set());
     const [, setIsCodeBlock] = useState(false);
 
     // Format tracking
-    editor.registerUpdateListener(({editorState}) => {
+    editor.registerUpdateListener(({ editorState }) => {
         editorState.read(() => {
             const selection = $getSelection();
             if ($isRangeSelection(selection)) {
@@ -114,7 +108,9 @@ const ToolbarPlugin = ({
                 if (headingType === 'p') {
                     $setBlocksType(selection, () => $createParagraphNode());
                 } else {
-                    $setBlocksType(selection, () => $createHeadingNode(headingType as HeadingTagType));
+                    $setBlocksType(selection, () =>
+                        $createHeadingNode(headingType as HeadingTagType)
+                    );
                 }
             }
         });
@@ -146,11 +142,20 @@ const ToolbarPlugin = ({
     const redo = () => editor.dispatchCommand(REDO_COMMAND, undefined);
 
     // Button component for consistent styling
-    const ToolbarButton = ({ onClick, icon: Icon, isActive, tooltip }: { onClick: () => void, icon: React.ElementType, isActive: boolean, tooltip: string }) => (
+    const ToolbarButton = ({
+        onClick,
+        icon: Icon,
+        isActive,
+        tooltip,
+    }: {
+        onClick: () => void;
+        icon: React.ElementType;
+        isActive: boolean;
+        tooltip: string;
+    }) => (
         <button
             onClick={onClick}
-            className={`p-2 rounded hover:bg-neutral-200 dark:hover:bg-neutral-500 text-neutral-800 dark:text-neutral-50 
-                ${isActive ? 'bg-neutral-200 dark:bg-neutral-500' : ''}`}
+            className={`rounded p-2 text-neutral-800 hover:bg-neutral-200 dark:text-neutral-50 dark:hover:bg-neutral-500 ${isActive ? 'bg-neutral-200 dark:bg-neutral-500' : ''}`}
             title={tooltip}
         >
             <Icon size={18} />
@@ -158,12 +163,12 @@ const ToolbarPlugin = ({
     );
 
     // Divider component
-    const Divider = () => (
-        <div className="h-6 w-px bg-neutral-300 dark:bg-neutral-600 mx-2" />
-    );
+    const Divider = () => <div className="mx-2 h-6 w-px bg-neutral-300 dark:bg-neutral-600" />;
 
     return (
-        <div className={`flex items-center p-2 bg-neutral-50 dark:bg-neutral-600 gap-1 flex-wrap border-b border-neutral-300 dark:border-neutral-600 ${className || ''}`}>
+        <div
+            className={`flex flex-wrap items-center gap-1 border-b border-neutral-300 bg-neutral-50 p-2 dark:border-neutral-600 dark:bg-neutral-600 ${className || ''}`}
+        >
             {/* History Controls */}
             <div className="flex items-center">
                 <ToolbarButton onClick={undo} icon={Undo} tooltip="Undo" isActive={false} />
@@ -251,7 +256,7 @@ const ToolbarPlugin = ({
                     icon={Heading3}
                     tooltip="Heading 3"
                     isActive={false}
-                    />
+                />
                 <ToolbarButton
                     onClick={() => formatHeading('p')}
                     icon={Piclrow}
@@ -260,7 +265,7 @@ const ToolbarPlugin = ({
                 />
             </div>
 
-            <Divider/>
+            <Divider />
 
             {/* Lists, Quote, and Code Block */}
             <div className="flex items-center">
@@ -284,7 +289,7 @@ const ToolbarPlugin = ({
                 />
             </div>
 
-            <div className="flex-1 flex justify-end">
+            <div className="flex flex-1 justify-end">
                 <SavePlugin onSave={handleSave} saveStatus={saveStatus} block={block} />
             </div>
         </div>

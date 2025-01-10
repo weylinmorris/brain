@@ -4,7 +4,7 @@ export async function getDeviceLocation(): Promise<GeoLocation | null> {
     try {
         // Check if geolocation is supported
         if (!navigator.geolocation) {
-            console.log("Geolocation is not supported by your browser", "warning");
+            console.log('Geolocation is not supported by your browser', 'warning');
             return null;
         }
 
@@ -21,19 +21,22 @@ export async function getDeviceLocation(): Promise<GeoLocation | null> {
         if (error instanceof GeolocationPositionError) {
             switch (error.code) {
                 case GeolocationPositionError.PERMISSION_DENIED:
-                    console.log("Please enable location permissions to use this feature", "warning");
+                    console.log(
+                        'Please enable location permissions to use this feature',
+                        'warning'
+                    );
                     break;
                 case GeolocationPositionError.POSITION_UNAVAILABLE:
-                    console.log("Location information is unavailable", "warning");
+                    console.log('Location information is unavailable', 'warning');
                     break;
                 case GeolocationPositionError.TIMEOUT:
-                    console.log("Location request timed out", "warning");
+                    console.log('Location request timed out', 'warning');
                     break;
                 default:
-                    console.log("An error occurred while getting your location", "warning");
+                    console.log('An error occurred while getting your location', 'warning');
             }
         } else {
-            console.log("Failed to get device location", "warning");
+            console.log('Failed to get device location', 'warning');
         }
         return null;
     }
@@ -42,12 +45,12 @@ export async function getDeviceLocation(): Promise<GeoLocation | null> {
 export function getDeviceName(): DeviceName {
     try {
         if (!navigator?.userAgent) {
-            console.log("Unable to detect device information", "warning");
-            return "Unknown Device";
+            console.log('Unable to detect device information', 'warning');
+            return 'Unknown Device';
         }
         return navigator.userAgent;
     } catch (error) {
-        console.log("Failed to get device information", "warning");
-        return "Unknown Device";
+        console.log('Failed to get device information', 'warning');
+        return 'Unknown Device';
     }
-} 
+}

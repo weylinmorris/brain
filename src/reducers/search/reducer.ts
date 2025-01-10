@@ -4,7 +4,7 @@ export const initialSearchState: SearchState = {
     query: '',
     results: null,
     isLoading: false,
-    error: null
+    error: null,
 };
 
 export function searchReducer(state: SearchState, action: SearchAction): SearchState {
@@ -13,44 +13,44 @@ export function searchReducer(state: SearchState, action: SearchAction): SearchS
             return {
                 ...state,
                 isLoading: true,
-                error: null
+                error: null,
             };
 
         case 'FINISH_LOADING':
             return {
                 ...state,
-                isLoading: false
+                isLoading: false,
             };
 
         case 'SET_ERROR':
             return {
                 ...state,
                 error: action.error,
-                isLoading: false
+                isLoading: false,
             };
 
         case 'SET_QUERY':
             return {
                 ...state,
                 query: action.query,
-                error: null
+                error: null,
             };
 
         case 'SET_RESULTS':
             return {
                 ...state,
                 results: action.results,
-                error: null
+                error: null,
             };
 
         case 'CLEAR_RESULTS':
             return {
                 ...state,
                 results: null,
-                error: null
+                error: null,
             };
 
         default:
             return state;
     }
-} 
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState } from 'react';
-import ToastContainer from "@/components/global/ToastContainer";
+import ToastContainer from '@/components/global/ToastContainer';
 
 export interface Toast {
     id: string;
@@ -45,4 +45,4 @@ export function useToast() {
         throw new Error('useToast must be used within a ToastProvider');
     }
     return context;
-} 
+}

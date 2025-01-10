@@ -1,5 +1,19 @@
-import { driver as createDriver, auth, Driver, Session, Transaction, Result, ManagedTransaction } from 'neo4j-driver';
-import { Neo4jClientInterface, Neo4jConfig, QueryOptions, DatabaseRecord, TransactionWork } from '@/types/database';
+import {
+    driver as createDriver,
+    auth,
+    Driver,
+    Session,
+    Transaction,
+    Result,
+    ManagedTransaction,
+} from 'neo4j-driver';
+import {
+    Neo4jClientInterface,
+    Neo4jConfig,
+    QueryOptions,
+    DatabaseRecord,
+    TransactionWork,
+} from '@/types/database';
 
 export class Neo4jClient implements Neo4jClientInterface {
     private driver: Driver | null;
@@ -20,15 +34,11 @@ export class Neo4jClient implements Neo4jClientInterface {
         }
 
         try {
-            this.driver = createDriver(
-                this.uri,
-                auth.basic(this.username, this.password),
-                {
-                    maxConnectionPoolSize: 50,
-                    connectionTimeout: 5000, // 5 seconds
-                    maxTransactionRetryTime: 30000 // 30 seconds
-                }
-            );
+            this.driver = createDriver(this.uri, auth.basic(this.username, this.password), {
+                maxConnectionPoolSize: 50,
+                connectionTimeout: 5000, // 5 seconds
+                maxTransactionRetryTime: 30000, // 30 seconds
+            });
 
             await this.verifyConnectivity();
         } catch (error) {
@@ -91,10 +101,10 @@ export class Neo4jClient implements Neo4jClientInterface {
     ): Promise<DatabaseRecord[]> {
         const session = await this.getSession();
         try {
-            const result = await session.executeRead(
-                async (tx: ManagedTransaction) => tx.run(cypher, params)
+            const result = await session.executeRead(async (tx: ManagedTransaction) =>
+                tx.run(cypher, params)
             );
-            return result.records.map(record => record.toObject());
+            return result.records.map((record) => record.toObject());
         } finally {
             await session.close();
         }
@@ -106,10 +116,10 @@ export class Neo4jClient implements Neo4jClientInterface {
     ): Promise<DatabaseRecord[]> {
         const session = await this.getSession();
         try {
-            const result = await session.executeWrite(
-                async (tx: ManagedTransaction) => tx.run(cypher, params)
+            const result = await session.executeWrite(async (tx: ManagedTransaction) =>
+                tx.run(cypher, params)
             );
-            return result.records.map(record => record.toObject());
+            return result.records.map((record) => record.toObject());
         } finally {
             await session.close();
         }
@@ -129,4 +139,4 @@ export class Neo4jClient implements Neo4jClientInterface {
             await session.close();
         }
     }
-} 
+}

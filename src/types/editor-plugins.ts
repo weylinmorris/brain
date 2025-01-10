@@ -18,4 +18,4 @@ export interface ToolbarButtonProps {
 export interface SavePluginProps {
     handleSave: () => Promise<void>;
     saveStatus: 'idle' | 'saving' | 'saved' | 'error';
-} 
+}

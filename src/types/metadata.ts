@@ -3,4 +3,4 @@ export interface GeoLocation {
     lng: number;
 }
 
-export type DeviceName = string; 
+export type DeviceName = string;

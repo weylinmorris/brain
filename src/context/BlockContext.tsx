@@ -27,9 +27,9 @@ function BlockProviderContent({ children }: BlockProviderProps) {
             try {
                 dispatch({ type: 'START_LOADING' });
                 const blocks = await fetchBlocks();
-                
+
                 if (!mounted) return;
-                
+
                 dispatch({ type: 'SET_BLOCKS', blocks });
 
                 if (!state.activeBlockId && blocks.length > 0) {
@@ -40,9 +40,9 @@ function BlockProviderContent({ children }: BlockProviderProps) {
                 }
             } catch (error) {
                 if (!mounted) return;
-                dispatch({ 
-                    type: 'SET_ERROR', 
-                    error: error instanceof Error ? error.message : 'Failed to load blocks' 
+                dispatch({
+                    type: 'SET_ERROR',
+                    error: error instanceof Error ? error.message : 'Failed to load blocks',
                 });
             } finally {
                 if (mounted) {
@@ -58,19 +58,13 @@ function BlockProviderContent({ children }: BlockProviderProps) {
         };
     }, [state.activeBlockId]);
 
-    return (
-        <BlockContext.Provider value={{ state, dispatch }}>
-            {children}
-        </BlockContext.Provider>
-    );
+    return <BlockContext.Provider value={{ state, dispatch }}>{children}</BlockContext.Provider>;
 }
 
 export function BlockProvider({ children }: BlockProviderProps) {
     return (
         <ErrorBoundary fallback={<div>Something went wrong with the block system.</div>}>
-            <BlockProviderContent>
-                {children}
-            </BlockProviderContent>
+            <BlockProviderContent>{children}</BlockProviderContent>
         </ErrorBoundary>
     );
-} 
+}

@@ -1,7 +1,7 @@
-import { db } from "@/db/client";
-import { NextRequest, NextResponse } from "next/server";
-import { BlockInput } from "@/types/database";
-import { Block } from "@/types/block";
+import { db } from '@/db/client';
+import { NextRequest, NextResponse } from 'next/server';
+import { BlockInput } from '@/types/database';
+import { Block } from '@/types/block';
 
 interface LogseqBlock {
     id: string;
@@ -63,32 +63,32 @@ function transformLogseqBlocks(logseqData: LogseqData): BlockInput[] {
                             {
                                 detail: 0,
                                 format: 0,
-                                mode: "normal",
-                                style: "",
+                                mode: 'normal',
+                                style: '',
                                 text: text || '',
-                                type: "text",
-                                version: 1
-                            }
+                                type: 'text',
+                                version: 1,
+                            },
                         ],
-                        direction: "ltr",
+                        direction: 'ltr',
                         format: 0,
                         indent: 0,
-                        type: "paragraph",
+                        type: 'paragraph',
                         version: 1,
                         textFormat: 0,
-                        textStyle: ""
-                    }
+                        textStyle: '',
+                    },
                 ],
-                direction: "ltr",
+                direction: 'ltr',
                 format: 0,
                 indent: 0,
-                type: "root",
-                version: 1
-            }
+                type: 'root',
+                version: 1,
+            },
         };
 
         return {
-            content: JSON.stringify(content)
+            content: JSON.stringify(content),
         };
     }
 
@@ -97,8 +97,8 @@ function transformLogseqBlocks(logseqData: LogseqData): BlockInput[] {
 
         if (Array.isArray(block.children)) {
             const childContent = block.children
-                .map(child => collectContent(child))
-                .filter(text => text) // Remove empty strings
+                .map((child) => collectContent(child))
+                .filter((text) => text) // Remove empty strings
                 .join('\n');
 
             if (childContent) {
@@ -120,7 +120,7 @@ function transformLogseqBlocks(logseqData: LogseqData): BlockInput[] {
         const blockData: BlockInput = {
             title: block['page-name'] || '',
             ...createLexicalContent(fullContent),
-            type: 'text'
+            type: 'text',
         };
 
         blocks.push(blockData);
@@ -129,8 +129,8 @@ function transformLogseqBlocks(logseqData: LogseqData): BlockInput[] {
     // Process each block in the data that has a page-name (these are our pages)
     if (Array.isArray(logseqData.blocks)) {
         logseqData.blocks
-            .filter(block => block['page-name'])
-            .forEach(block => processPage(block));
+            .filter((block) => block['page-name'])
+            .forEach((block) => processPage(block));
     }
 
     return blocks;
@@ -153,10 +153,7 @@ export async function POST(
         const file = formData.get('file');
 
         if (!file || !(file instanceof File)) {
-            return NextResponse.json(
-                { error: 'No file uploaded' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
         // Read the file content
@@ -167,23 +164,22 @@ export async function POST(
         return NextResponse.json({
             success: true,
             importedCount: importedBlocks.length,
-            blocks: importedBlocks
+            blocks: importedBlocks,
         });
-
     } catch (error) {
         console.error('POST /api/logseq/import error:', {
             name: error instanceof Error ? error.name : 'Unknown error',
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
-            cause: error instanceof Error ? error.cause : undefined
+            cause: error instanceof Error ? error.cause : undefined,
         });
 
         return NextResponse.json(
             {
                 error: 'Internal server error',
-                details: error instanceof Error ? error.message : 'Unknown error'
+                details: error instanceof Error ? error.message : 'Unknown error',
             },
             { status: 500 }
         );
     }
-} 
+}

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect } from "react";
-import BlockEditor from "@/components/block-editor/BlockEditor";
-import Search from "./Search";
+import React, { useEffect } from 'react';
+import BlockEditor from '@/components/block-editor/BlockEditor';
+import Search from './Search';
 
 const Main: React.FC = () => {
     useEffect(() => {
@@ -12,26 +12,26 @@ const Main: React.FC = () => {
         };
 
         setVh(); // Set on mount
-        window.addEventListener("resize", setVh);
-        window.addEventListener("orientationchange", setVh);
+        window.addEventListener('resize', setVh);
+        window.addEventListener('orientationchange', setVh);
 
         return () => {
-            window.removeEventListener("resize", setVh);
-            window.removeEventListener("orientationchange", setVh);
+            window.removeEventListener('resize', setVh);
+            window.removeEventListener('orientationchange', setVh);
         };
     }, []);
 
     return (
         <div
-            style={{ height: "calc(var(--vh, 1vh) * 100)" }}
-            className="w-full p-2 pb-24 md:pb-2 bg-neutral-50 dark:bg-neutral-800 flex flex-col overflow-hidden"
+            style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
+            className="flex w-full flex-col overflow-hidden bg-neutral-50 p-2 pb-24 dark:bg-neutral-800 md:pb-2"
         >
             <Search />
-            <div className="flex-1 min-h-0">
+            <div className="min-h-0 flex-1">
                 <BlockEditor className="h-full" />
             </div>
         </div>
     );
 };
 
-export default Main; 
+export default Main;

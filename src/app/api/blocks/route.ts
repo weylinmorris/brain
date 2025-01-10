@@ -3,7 +3,9 @@ import { db } from '@/db/client';
 import { BlockInput } from '@/types/database';
 import { Block } from '@/types/block';
 
-export async function GET(request: NextRequest): Promise<NextResponse<Block[] | { error: string; details?: string }>> {
+export async function GET(
+    request: NextRequest
+): Promise<NextResponse<Block[] | { error: string; details?: string }>> {
     try {
         await db.ensureConnection();
 
@@ -16,21 +18,25 @@ export async function GET(request: NextRequest): Promise<NextResponse<Block[] | 
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
             cause: error instanceof Error ? error.cause : undefined,
-            code: error instanceof Error && 'code' in error ? (error as { code: string }).code : undefined
+            code:
+                error instanceof Error && 'code' in error
+                    ? (error as { code: string }).code
+                    : undefined,
         });
 
-        if (error instanceof Error && 'code' in error && (error as { code: string }).code === 'ECONNREFUSED') {
+        if (
+            error instanceof Error &&
+            'code' in error &&
+            (error as { code: string }).code === 'ECONNREFUSED'
+        ) {
             console.error('GET /api/blocks: Database connection refused');
-            return NextResponse.json(
-                { error: 'Database connection failed' },
-                { status: 503 }
-            );
+            return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
         }
 
         return NextResponse.json(
             {
                 error: 'Internal server error',
-                details: error instanceof Error ? error.message : 'Unknown error'
+                details: error instanceof Error ? error.message : 'Unknown error',
             },
             { status: 500 }
         );
@@ -47,11 +53,13 @@ interface CreateBlockRequest {
     location?: { lat: number; lng: number } | null;
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse<Block | { error: string; details?: string }>> {
+export async function POST(
+    request: NextRequest
+): Promise<NextResponse<Block | { error: string; details?: string }>> {
     try {
         await db.ensureConnection();
 
-        const body = await request.json() as CreateBlockRequest;
+        const body = (await request.json()) as CreateBlockRequest;
 
         // Ensure required fields with defaults
         const blockData: BlockInput = {
@@ -59,7 +67,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Block | {
             content: body.content ?? '',
             type: body.type ?? 'text',
             device: body.device ?? undefined,
-            location: body.location ?? undefined
+            location: body.location ?? undefined,
         };
 
         const block = await db.blocks.createBlock(blockData);
@@ -70,15 +78,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<Block | {
             name: error instanceof Error ? error.name : 'Unknown error',
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
-            cause: error instanceof Error ? error.cause : undefined
+            cause: error instanceof Error ? error.cause : undefined,
         });
 
         return NextResponse.json(
             {
                 error: 'Internal server error',
-                details: error instanceof Error ? error.message : 'Unknown error'
+                details: error instanceof Error ? error.message : 'Unknown error',
             },
             { status: 500 }
         );
     }
-} 
+}

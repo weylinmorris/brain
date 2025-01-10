@@ -19,19 +19,13 @@ interface SearchProviderProps {
 function SearchProviderContent({ children }: SearchProviderProps) {
     const [state, dispatch] = useReducer(searchReducer, initialSearchState);
 
-    return (
-        <SearchContext.Provider value={{ state, dispatch }}>
-            {children}
-        </SearchContext.Provider>
-    );
+    return <SearchContext.Provider value={{ state, dispatch }}>{children}</SearchContext.Provider>;
 }
 
 export function SearchProvider({ children }: SearchProviderProps) {
     return (
         <ErrorBoundary fallback={<div>Something went wrong with the search system.</div>}>
-            <SearchProviderContent>
-                {children}
-            </SearchProviderContent>
+            <SearchProviderContent>{children}</SearchProviderContent>
         </ErrorBoundary>
     );
-} 
+}

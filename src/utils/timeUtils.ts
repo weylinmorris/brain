@@ -8,4 +8,4 @@ export const getTimeAgo = (timestamp: string | number | Date): string => {
     if (hours > 0) return `${hours}h ago`;
     if (minutes > 0) return `${minutes}m ago`;
     return 'just now';
-}; 
+};

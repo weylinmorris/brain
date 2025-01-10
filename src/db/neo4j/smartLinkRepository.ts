@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { cosineSimilarity, generateTimeMetadata, getPlainText } from "./utils";
-import { 
+import { cosineSimilarity, generateTimeMetadata, getPlainText } from './utils';
+import {
     SmartLinkRepositoryInterface,
     Neo4jClientInterface,
     BlockRepositoryInterface,
@@ -8,7 +8,7 @@ import {
     BlockActivity,
     ActionType,
     SimilarityType,
-    GeoLocation
+    GeoLocation,
 } from '@/types/database';
 import { Block } from '@/types/block';
 
@@ -32,14 +32,13 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
 
                 // Skip if either block doesn't have embeddings
                 if (!block.embeddings?.length || !otherBlock.embeddings?.length) {
-                    console.log(`Skipping similarity computation for blocks without embeddings: ${blockId} or ${otherBlock.id}`);
+                    console.log(
+                        `Skipping similarity computation for blocks without embeddings: ${blockId} or ${otherBlock.id}`
+                    );
                     continue;
                 }
 
-                const similarity = cosineSimilarity(
-                    block.embeddings,
-                    otherBlock.embeddings
-                );
+                const similarity = cosineSimilarity(block.embeddings, otherBlock.embeddings);
 
                 let relationshipType: SimilarityType | null = null;
                 if (similarity > 0.8) {
@@ -54,29 +53,35 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
 
                 if (relationshipType) {
                     // First delete any existing similarity relationships
-                    await this.neo4j.executeWrite(`
+                    await this.neo4j.executeWrite(
+                        `
                         MATCH (a:Block {id: $idA})-[r:LINKED|SIMILAR|MAYBE_SIMILAR|POSSIBLY_SIMILAR]->(b:Block {id: $idB})
                         DELETE r
-                    `, {
-                        idA: blockId,
-                        idB: otherBlock.id,
-                    });
+                    `,
+                        {
+                            idA: blockId,
+                            idB: otherBlock.id,
+                        }
+                    );
 
                     // Then create the new relationship
-                    await this.neo4j.executeWrite(`
+                    await this.neo4j.executeWrite(
+                        `
                         MATCH (a:Block {id: $idA}), (b:Block {id: $idB})
                         CREATE (a)-[r:${relationshipType}]->(b)
                         SET r.similarity = $similarity, 
                             r.similarityCheckedAt = datetime(),
                             r.lastUpdated = datetime()
-                    `, {
-                        idA: blockId,
-                        idB: otherBlock.id,
-                        similarity,
-                    });
+                    `,
+                        {
+                            idA: blockId,
+                            idB: otherBlock.id,
+                            similarity,
+                        }
+                    );
                 }
 
-                await new Promise(resolve => setTimeout(resolve, 100)); // Slow down to avoid rate limits
+                await new Promise((resolve) => setTimeout(resolve, 100)); // Slow down to avoid rate limits
             }
         } catch (error) {
             console.error('Failed to compute similarities for block:', error);
@@ -147,7 +152,7 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
                 blockId,
                 interactionId: uuidv4(),
                 actionType,
-                ...metadata
+                ...metadata,
             });
 
             return result[0].metadata;
@@ -166,14 +171,15 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
             const changes = {
                 type: [] as string[],
                 metrics: {
-                    titleLengthDelta: (updatedBlock.title?.length || 0) - (originalBlock.title?.length || 0),
+                    titleLengthDelta:
+                        (updatedBlock.title?.length || 0) - (originalBlock.title?.length || 0),
                     contentLengthDelta: updatedText.length - originalText.length,
-                    totalLength: updatedText.length
+                    totalLength: updatedText.length,
                 },
                 patterns: {
                     isExpansion: updatedText.length > originalText.length,
-                    isRefinement: updatedText.length <= originalText.length
-                }
+                    isRefinement: updatedText.length <= originalText.length,
+                },
             };
 
             // Track what changed
@@ -264,7 +270,7 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
                 activityId: uuidv4(),
                 changeTypes: changes.type,
                 metrics: changes.metrics,
-                patterns: changes.patterns
+                patterns: changes.patterns,
             });
 
             return {
@@ -272,8 +278,8 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
                 timestamp: new Date(result[0].activity.timestamp),
                 blockMetadata: {
                     ...result[0].activity.blockMetadata,
-                    lastEditTimestamp: new Date(result[0].activity.blockMetadata.lastEditTimestamp)
-                }
+                    lastEditTimestamp: new Date(result[0].activity.blockMetadata.lastEditTimestamp),
+                },
             };
         } catch (error) {
             console.error('Failed to trace activity:', error);
@@ -281,14 +287,19 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
         }
     }
 
-    async traceContext(blockId: string, deviceType = 'unknown', location?: GeoLocation): Promise<void> {
+    async traceContext(
+        blockId: string,
+        deviceType = 'unknown',
+        location?: GeoLocation
+    ): Promise<void> {
         try {
             // Extract latitude and longitude if they exist and are valid numbers
             const latitude = location?.lat;
             const longitude = location?.lng;
 
             // Only use the coordinates if both values are valid numbers
-            const hasValidCoordinates = typeof latitude === 'number' &&
+            const hasValidCoordinates =
+                typeof latitude === 'number' &&
                 typeof longitude === 'number' &&
                 !isNaN(latitude) &&
                 !isNaN(longitude);
@@ -308,7 +319,7 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
                 blockId,
                 contextId: uuidv4(),
                 deviceType,
-                ...(hasValidCoordinates && { latitude, longitude })
+                ...(hasValidCoordinates && { latitude, longitude }),
             });
         } catch (error) {
             console.error('Failed to trace context:', error);
@@ -318,23 +329,31 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
 
     async tracePreviousBlocks(blockId: string, previousBlockId: string): Promise<void> {
         try {
-            await this.neo4j.executeWrite(`
+            await this.neo4j.executeWrite(
+                `
                 MATCH (current:Block {id: $blockId}), (previous:Block {id: $previousBlockId})
                 MERGE (current)-[r:PREVIOUS]->(previous)
                 SET r.timestamp = datetime()
-            `, {
-                blockId,
-                previousBlockId
-            });
+            `,
+                {
+                    blockId,
+                    previousBlockId,
+                }
+            );
         } catch (error) {
             console.error('Failed to trace previous blocks:', error);
             throw error;
         }
     }
 
-    async traceUserFeedback(blockId: string, recommendation: string, feedback: boolean): Promise<void> {
+    async traceUserFeedback(
+        blockId: string,
+        recommendation: string,
+        feedback: boolean
+    ): Promise<void> {
         try {
-            await this.neo4j.executeWrite(`
+            await this.neo4j.executeWrite(
+                `
                 MATCH (b:Block {id: $blockId})
                 CREATE (f:Feedback {
                     id: $feedbackId,
@@ -343,12 +362,14 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
                     wasHelpful: $feedback
                 })
                 CREATE (b)-[:FEEDBACK]->(f)
-            `, {
-                blockId,
-                feedbackId: uuidv4(),
-                recommendation,
-                feedback
-            });
+            `,
+                {
+                    blockId,
+                    feedbackId: uuidv4(),
+                    recommendation,
+                    feedback,
+                }
+            );
         } catch (error) {
             console.error('Failed to trace user feedback:', error);
             throw error;
@@ -375,10 +396,10 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
 
             const result = await this.neo4j.executeQuery(query);
 
-            return result.map(record => ({
+            return result.map((record) => ({
                 ...record.block,
                 createdAt: new Date(record.block.createdAt),
-                updatedAt: new Date(record.block.updatedAt)
+                updatedAt: new Date(record.block.updatedAt),
             }));
         } catch (error) {
             console.error('Failed to get home feed recommendations:', error);
@@ -405,14 +426,14 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
 
             const result = await this.neo4j.executeQuery(query, { blockId });
 
-            return result.map(record => ({
+            return result.map((record) => ({
                 ...record.block,
                 createdAt: new Date(record.block.createdAt),
-                updatedAt: new Date(record.block.updatedAt)
+                updatedAt: new Date(record.block.updatedAt),
             }));
         } catch (error) {
             console.error('Failed to get related block recommendations:', error);
             throw error;
         }
     }
-} 
+}

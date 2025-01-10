@@ -35,4 +35,4 @@ export type BlockAction =
 export interface BlockContextType {
     state: BlockState;
     dispatch: React.Dispatch<BlockAction>;
-} 
+}

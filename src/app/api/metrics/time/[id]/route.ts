@@ -20,15 +20,15 @@ export async function POST(
             name: error instanceof Error ? error.name : 'Unknown error',
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
-            cause: error instanceof Error ? error.cause : undefined
+            cause: error instanceof Error ? error.cause : undefined,
         });
 
         return NextResponse.json(
             {
                 error: 'Internal server error',
-                details: error instanceof Error ? error.message : 'Unknown error'
+                details: error instanceof Error ? error.message : 'Unknown error',
             },
             { status: 500 }
         );
     }
-} 
+}

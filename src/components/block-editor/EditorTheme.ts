@@ -86,8 +86,7 @@ const theme: EditorThemeClasses = {
     table: 'EditorTheme__table',
     tableCell: 'EditorTheme__tableCell',
     tableCellActionButton: 'EditorTheme__tableCellActionButton',
-    tableCellActionButtonContainer:
-        'EditorTheme__tableCellActionButtonContainer',
+    tableCellActionButtonContainer: 'EditorTheme__tableCellActionButtonContainer',
     tableCellHeader: 'EditorTheme__tableCellHeader',
     tableCellResizer: 'EditorTheme__tableCellResizer',
     tableCellSelected: 'EditorTheme__tableCellSelected',
@@ -110,4 +109,4 @@ const theme: EditorThemeClasses = {
     },
 };
 
-export default theme; 
+export default theme;

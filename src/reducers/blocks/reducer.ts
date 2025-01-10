@@ -5,7 +5,7 @@ export const initialBlockState: BlockState = {
     recommendedBlocks: [],
     activeBlockId: null,
     isLoading: false,
-    error: null
+    error: null,
 };
 
 export function blockReducer(state: BlockState, action: BlockAction): BlockState {
@@ -14,77 +14,77 @@ export function blockReducer(state: BlockState, action: BlockAction): BlockState
             return {
                 ...state,
                 isLoading: true,
-                error: null
+                error: null,
             };
 
         case 'FINISH_LOADING':
             return {
                 ...state,
-                isLoading: false
+                isLoading: false,
             };
 
         case 'SET_ERROR':
             return {
                 ...state,
                 error: action.error,
-                isLoading: false
+                isLoading: false,
             };
 
         case 'SET_BLOCKS':
             return {
                 ...state,
                 blocks: action.blocks,
-                error: null
+                error: null,
             };
 
         case 'ADD_BLOCK':
             return {
                 ...state,
                 blocks: [...state.blocks, action.block],
-                error: null
+                error: null,
             };
 
         case 'UPDATE_BLOCK':
             return {
                 ...state,
-                blocks: state.blocks.map(block => 
+                blocks: state.blocks.map((block) =>
                     block.id === action.block.id ? action.block : block
                 ),
-                error: null
+                error: null,
             };
 
         case 'REMOVE_BLOCK':
             return {
                 ...state,
-                blocks: state.blocks.filter(block => block.id !== action.id),
+                blocks: state.blocks.filter((block) => block.id !== action.id),
                 activeBlockId: state.activeBlockId === action.id ? null : state.activeBlockId,
-                error: null
+                error: null,
             };
 
         case 'SET_RECOMMENDED_BLOCKS':
             return {
                 ...state,
                 recommendedBlocks: Array.from(
-                    new Map(action.blocks.map(block => [block.id, block])).values()
+                    new Map(action.blocks.map((block) => [block.id, block])).values()
                 ),
-                error: null
+                error: null,
             };
 
         case 'SET_ACTIVE_BLOCK':
             return {
                 ...state,
                 activeBlockId: action.id,
-                error: null
+                error: null,
             };
 
         case 'CLEAR_ACTIVE_BLOCK':
             return {
                 ...state,
                 activeBlockId: null,
-                error: null
+                error: null,
             };
 
         default:
             return state;
     }
-} 
+}

@@ -1,15 +1,15 @@
 import { v4 as uuidv4 } from 'uuid';
-import OpenAI from "openai";
+import OpenAI from 'openai';
 import pLimit from 'p-limit';
-import { getPlainText } from "./utils";
-import { 
-    BlockRepositoryInterface, 
-    Neo4jClientInterface, 
+import { getPlainText } from './utils';
+import {
+    BlockRepositoryInterface,
+    Neo4jClientInterface,
     SmartLinkRepositoryInterface,
     BlockInput,
     BlockUpdate,
     BlockSearchResult,
-    GeoLocation
+    GeoLocation,
 } from '@/types/database';
 import { Block } from '@/types/block';
 
@@ -18,7 +18,7 @@ const PERIOD = 60 * 1000; // 1 minute in milliseconds
 const limit = pLimit(Math.floor(RATE_LIMIT));
 
 async function sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export class BlockRepository implements BlockRepositoryInterface {
@@ -58,11 +58,11 @@ export class BlockRepository implements BlockRepositoryInterface {
         const smartLinks = this.ensureSmartLinkRepository();
 
         try {
-            const plainText = `${input.title} ${getPlainText(input.content)}`
+            const plainText = `${input.title} ${getPlainText(input.content)}`;
             const embeddingResponse = await openai.embeddings.create({
                 model: 'text-embedding-3-small',
                 input: plainText,
-                encoding_format: "float",
+                encoding_format: 'float',
             });
             const embeddings = embeddingResponse.data[0].embedding;
 
@@ -107,14 +107,17 @@ export class BlockRepository implements BlockRepositoryInterface {
             const block = result[0].block;
 
             // Queue background tasks
-            smartLinks.traceBlockLinks(block.id)
-                .catch(error => console.error('Failed to compute similarities:', error));
+            smartLinks
+                .traceBlockLinks(block.id)
+                .catch((error) => console.error('Failed to compute similarities:', error));
 
-            smartLinks.traceTime(block.id, 'CREATE')
-                .catch(error => console.error('Failed to save time data:', error));
+            smartLinks
+                .traceTime(block.id, 'CREATE')
+                .catch((error) => console.error('Failed to save time data:', error));
 
-            smartLinks.traceContext(block.id, input.device, input.location)
-                .catch(error => console.error('Failed to trace context:', error));
+            smartLinks
+                .traceContext(block.id, input.device, input.location)
+                .catch((error) => console.error('Failed to trace context:', error));
 
             return {
                 id: block.id,
@@ -124,7 +127,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                 createdAt: new Date(block.createdAt),
                 updatedAt: new Date(block.updatedAt),
                 plainText: block.plainText,
-                embeddings: block.embeddings
+                embeddings: block.embeddings,
             };
         } catch (error) {
             // Specific error handling for OpenAI or APOC-related issues
@@ -135,14 +138,18 @@ export class BlockRepository implements BlockRepositoryInterface {
                         input,
                         timestamp: new Date().toISOString(),
                     });
-                    throw new Error('Failed to generate embeddings. Please check the OpenAI API key or model configuration.');
+                    throw new Error(
+                        'Failed to generate embeddings. Please check the OpenAI API key or model configuration.'
+                    );
                 } else if (error.message.includes('APOC')) {
                     console.error('APOC Procedure Error:', {
                         error: error.message,
                         input,
                         timestamp: new Date().toISOString(),
                     });
-                    throw new Error('An error occurred with APOC procedures. Please check the Neo4j setup.');
+                    throw new Error(
+                        'An error occurred with APOC procedures. Please check the Neo4j setup.'
+                    );
                 }
             }
             // Generic error handling
@@ -167,23 +174,27 @@ export class BlockRepository implements BlockRepositoryInterface {
 
             for (let i = 0; i < inputs.length; i += batchSize) {
                 const batch = inputs.slice(i, i + batchSize);
-                console.log(`Processing batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(inputs.length/batchSize)}`);
+                console.log(
+                    `Processing batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(inputs.length / batchSize)}`
+                );
 
                 const batchPromises = batch.map(async (input, index) => {
                     return limit(async () => {
                         const blockId = uuidv4();
-                        const plainText = `${input.title} ${getPlainText(input.content)}`
+                        const plainText = `${input.title} ${getPlainText(input.content)}`;
 
                         await sleep(timePerRequest * index);
 
                         const embeddingResponse = await this.ensureOpenAI().embeddings.create({
                             model: 'text-embedding-3-small',
                             input: plainText,
-                            encoding_format: "float",
+                            encoding_format: 'float',
                         });
 
                         processedBlocks++;
-                        console.log(`Processed ${processedBlocks}/${totalBlocks} blocks (${Math.round((processedBlocks/totalBlocks) * 100)}%)`);
+                        console.log(
+                            `Processed ${processedBlocks}/${totalBlocks} blocks (${Math.round((processedBlocks / totalBlocks) * 100)}%)`
+                        );
 
                         const embeddings = embeddingResponse.data[0].embedding;
 
@@ -196,13 +207,15 @@ export class BlockRepository implements BlockRepositoryInterface {
                                 plainText,
                                 embeddings,
                             },
-                            blockId
+                            blockId,
                         };
                     });
                 });
 
                 const batchParams = await Promise.all(batchPromises);
-                console.log(`Completed embeddings for batch ${Math.floor(i/batchSize) + 1}, writing to database...`);
+                console.log(
+                    `Completed embeddings for batch ${Math.floor(i / batchSize) + 1}, writing to database...`
+                );
 
                 const query = `
                     UNWIND $blocks as block
@@ -234,22 +247,25 @@ export class BlockRepository implements BlockRepositoryInterface {
                     content: params.content,
                     type: params.type,
                     plainText: params.plainText,
-                    embeddings: params.embeddings
+                    embeddings: params.embeddings,
                 }));
 
                 const result = await this.neo4j.executeWrite(query, { blocks: blocksParam });
-                console.log(`Database write completed for batch ${Math.floor(i/batchSize) + 1}`);
+                console.log(`Database write completed for batch ${Math.floor(i / batchSize) + 1}`);
 
                 // Queue similarity computations
-                console.log(`Computing similarities for batch ${Math.floor(i/batchSize) + 1}...`);
+                console.log(`Computing similarities for batch ${Math.floor(i / batchSize) + 1}...`);
                 batchParams.forEach(({ blockId }, index) => {
                     setTimeout(() => {
-                        this.ensureSmartLinkRepository().traceBlockLinks(blockId)
-                            .catch(error => console.error('Failed to compute similarities:', error));
+                        this.ensureSmartLinkRepository()
+                            .traceBlockLinks(blockId)
+                            .catch((error) =>
+                                console.error('Failed to compute similarities:', error)
+                            );
                     }, timePerRequest * index);
                 });
 
-                const transformedResults = result.map(record => ({
+                const transformedResults = result.map((record) => ({
                     id: record.block.id,
                     title: record.block.title,
                     content: record.block.content,
@@ -257,7 +273,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                     createdAt: new Date(record.block.createdAt),
                     updatedAt: new Date(record.block.updatedAt),
                     plainText: record.block.plainText,
-                    embeddings: record.block.embeddings
+                    embeddings: record.block.embeddings,
                 }));
 
                 results.push(...transformedResults);
@@ -265,7 +281,6 @@ export class BlockRepository implements BlockRepositoryInterface {
 
             console.log(`Import completed. Processed ${totalBlocks} blocks successfully.`);
             return results;
-
         } catch (error) {
             if (error instanceof Error) {
                 if (error.message.includes('OpenAI')) {
@@ -273,13 +288,17 @@ export class BlockRepository implements BlockRepositoryInterface {
                         error: error.message,
                         timestamp: new Date().toISOString(),
                     });
-                    throw new Error('Failed to generate embeddings. Please check the OpenAI API key or model configuration.');
+                    throw new Error(
+                        'Failed to generate embeddings. Please check the OpenAI API key or model configuration.'
+                    );
                 } else if (error.message.includes('APOC')) {
                     console.error('APOC Procedure Error:', {
                         error: error.message,
                         timestamp: new Date().toISOString(),
                     });
-                    throw new Error('An error occurred with APOC procedures. Please check the Neo4j setup.');
+                    throw new Error(
+                        'An error occurred with APOC procedures. Please check the Neo4j setup.'
+                    );
                 }
             }
             console.error('Batch block creation failed:', {
@@ -297,7 +316,8 @@ export class BlockRepository implements BlockRepositoryInterface {
             const lowercaseQuery = query.toLowerCase().trim();
 
             // First get exact matches (case-insensitive)
-            const exactMatches = await this.neo4j.executeQuery(`
+            const exactMatches = await this.neo4j.executeQuery(
+                `
                 MATCH (b:Block)
                 WITH b, 
                     toLower(b.title) AS lowerTitle,
@@ -317,35 +337,38 @@ export class BlockRepository implements BlockRepositoryInterface {
                         WHEN lowerContent CONTAINS searchQuery THEN 'content'
                     END
                 } AS block
-            `, { query: lowercaseQuery });
+            `,
+                { query: lowercaseQuery }
+            );
 
             // Separate exact matches into title and content arrays
             const titleMatches = exactMatches
-                .filter(row => row.block.matchType === 'title')
-                .map(row => ({
+                .filter((row) => row.block.matchType === 'title')
+                .map((row) => ({
                     ...row.block,
-                    similarity: 1
+                    similarity: 1,
                 }));
 
             const contentMatches = exactMatches
-                .filter(row => row.block.matchType === 'content')
-                .map(row => ({
+                .filter((row) => row.block.matchType === 'content')
+                .map((row) => ({
                     ...row.block,
-                    similarity: 1
+                    similarity: 1,
                 }));
 
             // Get embedding-based matches
             const embeddingResponse = await openai.embeddings.create({
                 model: 'text-embedding-3-small',
                 input: query,
-                encoding_format: "float",
+                encoding_format: 'float',
             });
             const queryEmbedding = embeddingResponse.data[0].embedding;
 
             // Exclude IDs that we already found in exact matches
-            const exactMatchIds = exactMatches.map(row => row.block.id);
+            const exactMatchIds = exactMatches.map((row) => row.block.id);
 
-            const similarityMatches = await this.neo4j.executeQuery(`
+            const similarityMatches = await this.neo4j.executeQuery(
+                `
                 MATCH (b:Block)
                 WHERE NOT b.id IN $exactMatchIds
                 WITH b, gds.similarity.cosine(b.embeddings, $queryEmbedding) AS similarity
@@ -361,30 +384,30 @@ export class BlockRepository implements BlockRepositoryInterface {
                 } AS block, similarity
                 ORDER BY similarity DESC
                 LIMIT 10
-            `, {
-                queryEmbedding,
-                threshold,
-                exactMatchIds
-            });
+            `,
+                {
+                    queryEmbedding,
+                    threshold,
+                    exactMatchIds,
+                }
+            );
 
-            const embeddingMatches = similarityMatches.map(row => ({
+            const embeddingMatches = similarityMatches.map((row) => ({
                 ...row.block,
-                similarity: row.similarity
+                similarity: row.similarity,
             }));
 
             // Return array of arrays: [titleMatches, contentMatches, embeddingMatches]
             return {
                 titleMatches: titleMatches,
                 contentMatches: contentMatches,
-                similarityMatches: embeddingMatches
+                similarityMatches: embeddingMatches,
             };
-
         } catch (error) {
             console.error('Failed to perform search:', error);
             throw new Error('Search failed. Please try again.');
         }
     }
-
 
     async getBlocks(includeEmbeddings = false): Promise<Block[]> {
         try {
@@ -404,14 +427,14 @@ export class BlockRepository implements BlockRepositoryInterface {
 
             const result = await this.neo4j.executeQuery(query);
 
-            return result.map(record => ({
+            return result.map((record) => ({
                 id: record.block.id,
                 title: record.block.title,
                 content: record.block.content,
                 type: record.block.type,
                 createdAt: new Date(record.block.createdAt),
                 updatedAt: new Date(record.block.updatedAt),
-                ...(includeEmbeddings && { embeddings: record.block.embeddings })
+                ...(includeEmbeddings && { embeddings: record.block.embeddings }),
             }));
         } catch (error) {
             console.error('Failed to get blocks:', error);
@@ -419,7 +442,12 @@ export class BlockRepository implements BlockRepositoryInterface {
         }
     }
 
-    async getBlock(id: string, device?: string, location?: GeoLocation, includeEmbeddings = false): Promise<Block> {
+    async getBlock(
+        id: string,
+        device?: string,
+        location?: GeoLocation,
+        includeEmbeddings = false
+    ): Promise<Block> {
         try {
             const query = `
                 MATCH (b:Block {id: $id})
@@ -443,12 +471,14 @@ export class BlockRepository implements BlockRepositoryInterface {
             const block = result[0].block;
 
             // Track view in background
-            this.ensureSmartLinkRepository().traceTime(id, 'VIEW')
-                .catch(error => console.error('Failed to save time data:', error));
+            this.ensureSmartLinkRepository()
+                .traceTime(id, 'VIEW')
+                .catch((error) => console.error('Failed to save time data:', error));
 
             if (device || location) {
-                this.ensureSmartLinkRepository().traceContext(id, device, location)
-                    .catch(error => console.error('Failed to trace context:', error));
+                this.ensureSmartLinkRepository()
+                    .traceContext(id, device, location)
+                    .catch((error) => console.error('Failed to trace context:', error));
             }
 
             return {
@@ -458,7 +488,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                 type: block.type,
                 createdAt: new Date(block.createdAt),
                 updatedAt: new Date(block.updatedAt),
-                ...(includeEmbeddings && { embeddings: block.embeddings })
+                ...(includeEmbeddings && { embeddings: block.embeddings }),
             };
         } catch (error) {
             console.error('Failed to get block:', error);
@@ -466,13 +496,18 @@ export class BlockRepository implements BlockRepositoryInterface {
         }
     }
 
-    async updateBlock(id: string, updates: BlockUpdate, device?: string, location?: GeoLocation): Promise<Block> {
+    async updateBlock(
+        id: string,
+        updates: BlockUpdate,
+        device?: string,
+        location?: GeoLocation
+    ): Promise<Block> {
         try {
-            const plainText = `${updates.title} ${getPlainText(updates.content || '')}`
+            const plainText = `${updates.title} ${getPlainText(updates.content || '')}`;
             const embeddingResponse = await this.ensureOpenAI().embeddings.create({
                 model: 'text-embedding-3-small',
                 input: plainText,
-                encoding_format: "float",
+                encoding_format: 'float',
             });
             const embeddings = embeddingResponse.data[0].embedding;
 
@@ -497,10 +532,10 @@ export class BlockRepository implements BlockRepositoryInterface {
                 updates: {
                     ...(updates.title !== undefined && { title: updates.title }),
                     ...(updates.content !== undefined && { content: updates.content }),
-                    ...(updates.type !== undefined && { type: updates.type })
+                    ...(updates.type !== undefined && { type: updates.type }),
                 },
                 plainText,
-                embeddings
+                embeddings,
             });
 
             if (!result.length) {
@@ -510,15 +545,18 @@ export class BlockRepository implements BlockRepositoryInterface {
             const block = result[0].block;
 
             // Queue background tasks
-            this.ensureSmartLinkRepository().traceBlockLinks(id)
-                .catch(error => console.error('Failed to compute similarities:', error));
+            this.ensureSmartLinkRepository()
+                .traceBlockLinks(id)
+                .catch((error) => console.error('Failed to compute similarities:', error));
 
-            this.ensureSmartLinkRepository().traceTime(id, 'UPDATE')
-                .catch(error => console.error('Failed to save time data:', error));
+            this.ensureSmartLinkRepository()
+                .traceTime(id, 'UPDATE')
+                .catch((error) => console.error('Failed to save time data:', error));
 
             if (device || location) {
-                this.ensureSmartLinkRepository().traceContext(id, device, location)
-                    .catch(error => console.error('Failed to trace context:', error));
+                this.ensureSmartLinkRepository()
+                    .traceContext(id, device, location)
+                    .catch((error) => console.error('Failed to trace context:', error));
             }
 
             return {
@@ -527,7 +565,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                 content: block.content,
                 type: block.type,
                 createdAt: new Date(block.createdAt),
-                updatedAt: new Date(block.updatedAt)
+                updatedAt: new Date(block.updatedAt),
             };
         } catch (error) {
             console.error('Failed to update block:', error);
@@ -548,4 +586,4 @@ export class BlockRepository implements BlockRepositoryInterface {
             throw error;
         }
     }
-} 
+}

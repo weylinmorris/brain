@@ -23,7 +23,11 @@ export interface Neo4jClientInterface {
     disconnect(): Promise<void>;
     verifyConnectivity(): Promise<void>;
     getSession(): Promise<Session>;
-    executeQuery(cypher: string, params?: Record<string, any>, options?: QueryOptions): Promise<DatabaseRecord[]>;
+    executeQuery(
+        cypher: string,
+        params?: Record<string, any>,
+        options?: QueryOptions
+    ): Promise<DatabaseRecord[]>;
     executeWrite(cypher: string, params?: Record<string, any>): Promise<DatabaseRecord[]>;
     executeTransaction(work: TransactionWork, options?: QueryOptions): Promise<Result>;
 }
@@ -61,8 +65,18 @@ export interface BlockRepositoryInterface {
     createManyBlocks(inputs: BlockInput[]): Promise<Block[]>;
     searchBlocks(query: string, threshold?: number): Promise<BlockSearchResult>;
     getBlocks(includeEmbeddings?: boolean): Promise<Block[]>;
-    getBlock(id: string, device?: string, location?: GeoLocation, includeEmbeddings?: boolean): Promise<Block>;
-    updateBlock(id: string, updates: BlockUpdate, device?: string, location?: GeoLocation): Promise<Block>;
+    getBlock(
+        id: string,
+        device?: string,
+        location?: GeoLocation,
+        includeEmbeddings?: boolean
+    ): Promise<Block>;
+    updateBlock(
+        id: string,
+        updates: BlockUpdate,
+        device?: string,
+        location?: GeoLocation
+    ): Promise<Block>;
     deleteBlock(id: string): Promise<void>;
     setSmartLinkRepository(repo: SmartLinkRepositoryInterface): void;
     initializeOpenAI(openai: OpenAI): void;
@@ -124,4 +138,4 @@ export interface SmartLinkRepositoryInterface {
     traceUserFeedback(blockId: string, recommendation: string, feedback: boolean): Promise<void>;
     getHomeFeedRecommendations(device?: string, location?: GeoLocation): Promise<Block[]>;
     getRelatedBlockRecommendations(blockId: string): Promise<Block[]>;
-} 
+}

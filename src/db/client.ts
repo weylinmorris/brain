@@ -1,8 +1,12 @@
 import { Neo4jClient } from './neo4j/driver';
 import { BlockRepository } from './neo4j/blockRepository';
-import { SmartLinkRepository } from "./neo4j/smartLinkRepository";
-import { DatabaseInterface, BlockRepositoryInterface, SmartLinkRepositoryInterface } from '@/types/database';
-import OpenAI from "openai";
+import { SmartLinkRepository } from './neo4j/smartLinkRepository';
+import {
+    DatabaseInterface,
+    BlockRepositoryInterface,
+    SmartLinkRepositoryInterface,
+} from '@/types/database';
+import OpenAI from 'openai';
 
 class Database implements DatabaseInterface {
     private static instance: Database | null = null;
@@ -67,4 +71,4 @@ class Database implements DatabaseInterface {
 }
 
 const db = Database.getInstance();
-export { db }; 
+export { db };

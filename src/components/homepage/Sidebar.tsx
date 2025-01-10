@@ -1,12 +1,12 @@
 'use client';
 
-import { ChevronUpIcon, Upload } from "lucide-react";
-import { useBlock } from "@/hooks/useBlock";
-import { useMemo, useState, ChangeEvent } from "react";
+import { ChevronUpIcon, Upload } from 'lucide-react';
+import { useBlock } from '@/hooks/useBlock';
+import { useMemo, useState, ChangeEvent } from 'react';
 import SwipeableNote from '@/components/blocks/SwipeableNote';
-import ThemeToggle from "../../components/theme/ThemeToggle";
-import { Block } from "@/types/block";
-import { TabType } from "@/app/page";
+import ThemeToggle from '../../components/theme/ThemeToggle';
+import { Block } from '@/types/block';
+import { TabType } from '@/app/page';
 
 interface SidebarProps {
     setActiveTab: React.Dispatch<React.SetStateAction<TabType>>;
@@ -43,8 +43,7 @@ function Sidebar({ setActiveTab }: SidebarProps) {
     }, [blocks]);
 
     const allBlocks = useMemo(() => {
-        return [...blocks]
-            .sort((a, b) => a.title.localeCompare(b.title));
+        return [...blocks].sort((a, b) => a.title.localeCompare(b.title));
     }, [blocks]);
 
     const handleNewBlockClick = async (): Promise<void> => {
@@ -54,12 +53,12 @@ function Sidebar({ setActiveTab }: SidebarProps) {
             content: '',
             type: 'text',
             createdAt: now,
-            updatedAt: now
+            updatedAt: now,
         });
 
         setActiveBlock(newBlock.id);
         setActiveTab('editor');
-    }
+    };
 
     const handleBlockClick = (block: Block): void => {
         setActiveBlock(block.id);
@@ -93,12 +92,15 @@ function Sidebar({ setActiveTab }: SidebarProps) {
     };
 
     return (
-        <div style={{height: "calc(var(--vh, 1vh) * 100)"}}
-             className="p-2 pb-24 md:pb-2 bg:neutral-50 md:bg-neutral-100 dark:bg-neutral-800 md:dark:bg-neutral-600 w-full md:w-96 flex flex-col flex-shrink-0 text-neutral-900 dark:text-neutral-50">
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <div>
+        <div
+            style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
+            className="bg:neutral-50 flex w-full flex-shrink-0 flex-col p-2 pb-24 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-50 md:w-96 md:bg-neutral-100 md:pb-2 md:dark:bg-neutral-600"
+        >
+            <div className="flex h-full flex-col">
+                {/* Top section with New Note button */}
+                <div className="flex-shrink-0">
                     <button
-                        className="w-full mb-2 font-bold bg-primary-600 dark:bg-primary-800 text-neutral-100 rounded-md px-4 py-2 hover:bg-primary-700 dark:hover:bg-primary-700 relative group"
+                        className="group relative mb-2 w-full rounded-md bg-primary-600 px-4 py-2 font-bold text-neutral-100 hover:bg-primary-700 dark:bg-primary-800 dark:hover:bg-primary-700"
                         onClick={handleNewBlockClick}
                         title="Create a new page"
                     >
@@ -106,12 +108,14 @@ function Sidebar({ setActiveTab }: SidebarProps) {
                     </button>
                 </div>
 
-                <div className="flex-1 flex flex-col max-h-full overflow-y-auto">
+                {/* Main content area */}
+                <div className="flex min-h-0 flex-1 flex-col">
                     {/* Recent Notes Section */}
-                    <div className="flex flex-col">
+                    <div className="flex-shrink-0">
                         <div
                             onClick={toggleRecentExpanded}
-                            className="flex justify-between items-center hover:bg-neutral-200 dark:hover:bg-neutral-500 rounded-md px-4 py-2 hover:cursor-pointer">
+                            className="flex items-center justify-between rounded-md px-4 py-2 hover:cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-500"
+                        >
                             <h4>Recent Notes</h4>
                             <ChevronUpIcon
                                 className={`h-5 w-5 transform transition-transform duration-300 ${
@@ -119,10 +123,14 @@ function Sidebar({ setActiveTab }: SidebarProps) {
                                 }`}
                             />
                         </div>
-                        <div className={`mt-2 overflow-y-auto ${
-                            isRecentExpanded ? 'opacity-100 mb-4' : 'max-h-0 opacity-0 overflow-hidden'
-                        } duration-300`}>
-                            {recentBlocks.map(block => (
+                        <div
+                            className={`mt-2 ${
+                                isRecentExpanded
+                                    ? 'mb-4 opacity-100'
+                                    : 'max-h-0 overflow-hidden opacity-0'
+                            } duration-300`}
+                        >
+                            {recentBlocks.map((block) => (
                                 <SwipeableNote
                                     key={block.id}
                                     block={block}
@@ -136,10 +144,11 @@ function Sidebar({ setActiveTab }: SidebarProps) {
                     </div>
 
                     {/* All Notes Section */}
-                    <div className="flex flex-col">
+                    <div className="flex min-h-0 flex-1 flex-col">
                         <div
                             onClick={toggleAllExpanded}
-                            className="flex justify-between items-center hover:bg-neutral-200 dark:hover:bg-neutral-500 rounded-md px-4 py-2 hover:cursor-pointer">
+                            className="flex items-center justify-between rounded-md px-4 py-2 hover:cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-500"
+                        >
                             <h4>All Notes ({allBlocks.length})</h4>
                             <ChevronUpIcon
                                 className={`h-5 w-5 transform transition-transform duration-300 ${
@@ -147,10 +156,12 @@ function Sidebar({ setActiveTab }: SidebarProps) {
                                 }`}
                             />
                         </div>
-                        <div className={`mt-2 ml-4 overflow-y-auto ${
-                            isAllExpanded ? 'opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
-                        } duration-300`}>
-                            {allBlocks.map(block => (
+                        <div
+                            className={`ml-4 mt-2 flex-1 overflow-y-auto ${
+                                isAllExpanded ? 'opacity-100' : 'max-h-0 overflow-hidden opacity-0'
+                            } duration-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar]:bg-transparent`}
+                        >
+                            {allBlocks.map((block) => (
                                 <SwipeableNote
                                     key={block.id}
                                     block={block}
@@ -163,27 +174,16 @@ function Sidebar({ setActiveTab }: SidebarProps) {
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="flex-0 flex items-center justify-end space-x-2">
-                <ThemeToggle />
-
-                {/* <label className="relative cursor-pointer flex-1">
-                    <input
-                        type="file"
-                        className="hidden"
-                        accept=".json,.edn"
-                        onChange={handleFileChange}
-                    />
-                    <div
-                        className="p-4 font-bold bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300  dark:hover:bg-neutral-500 rounded-md flex items-center justify-center">
-                        <Upload size={16}/>
-                        <p className="ml-6 text-xs">Import from Logseq</p>
+                {/* Bottom bar */}
+                <div className="mt-4 flex-shrink-0">
+                    <div className="flex items-center justify-end space-x-2">
+                        <ThemeToggle />
                     </div>
-                </label> */}
+                </div>
             </div>
         </div>
     );
 }
 
-export default Sidebar; 
+export default Sidebar;

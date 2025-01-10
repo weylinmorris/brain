@@ -14,4 +14,4 @@ export interface PreviewResult {
     preview: string;
     matchStart: number;
     matchEnd: number;
-} 
+}

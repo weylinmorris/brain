@@ -5,8 +5,4 @@ import { SearchProvider } from './SearchContext';
 import { ToastProvider } from './ToastContext';
 import { combineComponents } from './utils';
 
-export const RootProvider = combineComponents(
-    BlockProvider,
-    SearchProvider,
-    ToastProvider
-); 
+export const RootProvider = combineComponents(BlockProvider, SearchProvider, ToastProvider);

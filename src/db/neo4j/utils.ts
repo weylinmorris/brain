@@ -19,14 +19,14 @@ const SEGMENTS: TimeSegments = {
     MIDDAY: { start: 12, end: 14 },
     AFTERNOON: { start: 15, end: 17 },
     EVENING: { start: 18, end: 21 },
-    NIGHT: { start: 22, end: 4 }
+    NIGHT: { start: 22, end: 4 },
 };
 
 const SEASONS: SeasonMonths = {
     SPRING: [3, 4, 5],
     SUMMER: [6, 7, 8],
     FALL: [9, 10, 11],
-    WINTER: [12, 1, 2]
+    WINTER: [12, 1, 2],
 };
 
 export function cosineSimilarity(embeddingA: number[], embeddingB: number[]): number {
@@ -54,17 +54,16 @@ export function generateTimeMetadata(date: Date): TimeMetadata {
     const dayOfWeek = date.getDay(); // 0-6, 0 is Sunday
     const month = date.getMonth() + 1;
 
-    const daySegment = Object.keys(SEGMENTS).find(segment => {
+    const daySegment = Object.keys(SEGMENTS).find((segment) => {
         const { start, end } = SEGMENTS[segment];
-        if (end < start) { // Handles overnight segments
+        if (end < start) {
+            // Handles overnight segments
             return hour >= start || hour <= end;
         }
         return hour >= start && hour <= end;
     }) as DaySegment;
 
-    const season = Object.keys(SEASONS).find(s =>
-        SEASONS[s].includes(month)
-    ) as Season;
+    const season = Object.keys(SEASONS).find((s) => SEASONS[s].includes(month)) as Season;
 
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     const isWorkHours = hour >= 9 && hour <= 17 && !isWeekend;
@@ -76,7 +75,7 @@ export function generateTimeMetadata(date: Date): TimeMetadata {
         daySegment,
         season,
         isWeekend,
-        isWorkHours
+        isWorkHours,
     };
 }
 
@@ -131,4 +130,4 @@ export function getPlainText(content: string): string {
         console.error('Failed to parse content or extract plain text:', error);
         return ''; // Return empty string if parsing fails
     }
-} 
+}

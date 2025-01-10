@@ -14,7 +14,7 @@ const formatDate = (date: Date) => {
         return updateDate.toLocaleTimeString([], {
             hour: 'numeric',
             minute: '2-digit',
-            hour12: true
+            hour12: true,
         });
     }
 
@@ -22,7 +22,7 @@ const formatDate = (date: Date) => {
     if (updateDate.getFullYear() === now.getFullYear()) {
         return updateDate.toLocaleDateString([], {
             month: 'short',
-            day: 'numeric'
+            day: 'numeric',
         });
     }
 
@@ -30,11 +30,19 @@ const formatDate = (date: Date) => {
     return updateDate.toLocaleDateString([], {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
     });
 };
 
-function SavePlugin({ onSave, saveStatus, block }: { onSave: (json: string) => void, saveStatus: string, block: Block }) {
+function SavePlugin({
+    onSave,
+    saveStatus,
+    block,
+}: {
+    onSave: (json: string) => void;
+    saveStatus: string;
+    block: Block;
+}) {
     const [editor] = useLexicalComposerContext();
 
     const saveContent = useCallback(async () => {
@@ -70,8 +78,8 @@ function SavePlugin({ onSave, saveStatus, block }: { onSave: (json: string) => v
     };
 
     return (
-        <div 
-            className="flex items-center gap-2 text-xs text-neutral-400 mr-2 cursor-pointer hover:text-neutral-300"
+        <div
+            className="mr-2 flex cursor-pointer items-center gap-2 text-xs text-neutral-400 hover:text-neutral-300"
             onClick={saveContent}
         >
             <div className="flex items-center gap-1.5">

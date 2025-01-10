@@ -4,66 +4,69 @@
 @tailwind components;
 @tailwind utilities;
 @layer base {
-  /* Headings */
-  h1 {
-    @apply text-4xl font-bold tracking-tight;
-  }
+    /* Headings */
+    h1 {
+        @apply text-4xl font-bold tracking-tight;
+    }
 
-  h2 {
-    @apply text-3xl font-semibold tracking-tight;
-  }
+    h2 {
+        @apply text-3xl font-semibold tracking-tight;
+    }
 
-  h3 {
-    @apply text-2xl font-semibold;
-  }
+    h3 {
+        @apply text-2xl font-semibold;
+    }
 
-  h4 {
-    @apply font-semibold;
-  }
+    h4 {
+        @apply font-semibold;
+    }
 
-  /* Body text */
-  p {
-    @apply text-base;
-  }
+    /* Body text */
+    p {
+        @apply text-base;
+    }
 
-  /* Links */
-  a {
-    @apply text-primary-600 dark:text-primary-400 hover:underline cursor-pointer;
-  }
+    /* Links */
+    a {
+        @apply cursor-pointer text-primary-600 hover:underline dark:text-primary-400;
+    }
 
-  /* Code */
-  code {
-    @apply font-mono px-1.5 py-0.5 rounded text-sm;
-  }
+    /* Code */
+    code {
+        @apply rounded px-1.5 py-0.5 font-mono text-sm;
+    }
 
-  /* Small text */
-  small {
-    @apply text-sm;
-  }
+    /* Small text */
+    small {
+        @apply text-sm;
+    }
 
-  /* Form elements */
-  label {
-    @apply text-sm font-medium;
-  }
+    /* Form elements */
+    label {
+        @apply text-sm font-medium;
+    }
 
-  input, textarea, select {
-    @apply focus:outline-none focus:border-primary-600 dark:focus:border-primary-400 text-sm;
-    font-family: Inter, Helvetica, sans-serif;
-  }
+    input,
+    textarea,
+    select {
+        @apply text-sm focus:border-primary-600 focus:outline-none dark:focus:border-primary-400;
+        font-family: Inter, Helvetica, sans-serif;
+    }
 }
 
 body {
-  font-family: Inter, Helvetica, sans-serif;
+    font-family: Inter, Helvetica, sans-serif;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden; /* Prevent scrolling */
-  height: 100%; /* Ensure they fill the viewport */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevent scrolling */
+    height: 100%; /* Ensure they fill the viewport */
 }
 
 .reset-tw,
 .reset-tw * {
-  all: revert !important;
+    all: revert !important;
 }

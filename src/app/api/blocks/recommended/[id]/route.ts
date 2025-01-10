@@ -22,23 +22,27 @@ export async function GET(
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
             cause: error instanceof Error ? error.cause : undefined,
-            code: error instanceof Error && 'code' in error ? (error as { code: string }).code : undefined
+            code:
+                error instanceof Error && 'code' in error
+                    ? (error as { code: string }).code
+                    : undefined,
         });
 
-        if (error instanceof Error && 'code' in error && (error as { code: string }).code === 'ECONNREFUSED') {
+        if (
+            error instanceof Error &&
+            'code' in error &&
+            (error as { code: string }).code === 'ECONNREFUSED'
+        ) {
             console.error('GET /api/blocks/recommended: Database connection refused');
-            return NextResponse.json(
-                { error: 'Database connection failed' },
-                { status: 503 }
-            );
+            return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
         }
 
         return NextResponse.json(
             {
                 error: 'Internal server error',
-                details: error instanceof Error ? error.message : 'Unknown error'
+                details: error instanceof Error ? error.message : 'Unknown error',
             },
             { status: 500 }
         );
     }
-} 
+}

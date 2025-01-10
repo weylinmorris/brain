@@ -16,17 +16,20 @@ function useDebounce<T extends AnyFunction>(
         };
     }, []);
 
-    const debouncedCallback = useCallback((...args: Parameters<T>) => {
-        if (timeoutRef.current) {
-            window.clearTimeout(timeoutRef.current);
-        }
+    const debouncedCallback = useCallback(
+        (...args: Parameters<T>) => {
+            if (timeoutRef.current) {
+                window.clearTimeout(timeoutRef.current);
+            }
 
-        timeoutRef.current = window.setTimeout(() => {
-            callback(...args);
-        }, delay);
-    }, [callback, delay]);
+            timeoutRef.current = window.setTimeout(() => {
+                callback(...args);
+            }, delay);
+        },
+        [callback, delay]
+    );
 
     return debouncedCallback;
 }
 
-export default useDebounce; 
+export default useDebounce;

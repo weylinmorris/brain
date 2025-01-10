@@ -6,7 +6,7 @@ const getPreviewFromLexicalNode = (node: LexicalNode): string => {
     if (!node) return '';
     if (node.text) return node.text;
     if (node.children && Array.isArray(node.children)) {
-        return node.children.map(child => getPreviewFromLexicalNode(child)).join(' ');
+        return node.children.map((child) => getPreviewFromLexicalNode(child)).join(' ');
     }
     return '';
 };
@@ -15,8 +15,8 @@ const getPreviewFromLexicalNode = (node: LexicalNode): string => {
 const getAllLexicalContent = (content: LexicalContent): string => {
     if (!content?.root?.children) return '';
     return content.root.children
-        .map(node => getPreviewFromLexicalNode(node))
-        .filter(text => text.length > 0)
+        .map((node) => getPreviewFromLexicalNode(node))
+        .filter((text) => text.length > 0)
         .join(' ');
 };
 
@@ -30,7 +30,7 @@ const generateContextualPreview = (
         return {
             preview: 'Empty block',
             matchStart: -1,
-            matchEnd: -1
+            matchEnd: -1,
         };
     }
 
@@ -40,7 +40,7 @@ const generateContextualPreview = (
             return {
                 preview: content,
                 matchStart: -1,
-                matchEnd: -1
+                matchEnd: -1,
             };
         }
 
@@ -48,7 +48,7 @@ const generateContextualPreview = (
         return {
             preview: content.substring(start, start + previewLength) + '...',
             matchStart: -1,
-            matchEnd: -1
+            matchEnd: -1,
         };
     }
 
@@ -59,7 +59,7 @@ const generateContextualPreview = (
         return {
             preview: content.substring(0, previewLength) + '...',
             matchStart: -1,
-            matchEnd: -1
+            matchEnd: -1,
         };
     }
 
@@ -92,9 +92,7 @@ const generateContextualPreview = (
     const hasLeadingEllipsis = start > 0;
     const hasTrailingEllipsis = end < content.length;
     const finalPreview =
-        (hasLeadingEllipsis ? '...' : '') +
-        preview +
-        (hasTrailingEllipsis ? '...' : '');
+        (hasLeadingEllipsis ? '...' : '') + preview + (hasTrailingEllipsis ? '...' : '');
 
     // Calculate match positions in the preview, accounting for leading ellipsis
     const ellipsisOffset = hasLeadingEllipsis ? 3 : 0;
@@ -103,7 +101,7 @@ const generateContextualPreview = (
     return {
         preview: finalPreview,
         matchStart: previewMatchStart,
-        matchEnd: previewMatchStart + matchLength
+        matchEnd: previewMatchStart + matchLength,
     };
 };
 
@@ -112,9 +110,7 @@ export const getPreviewFromBlock = (block: Block): string => {
     try {
         if (!block?.title) return 'Empty Note';
         const firstLine = block.title.split('\n')[0];
-        return firstLine.length > 40
-            ? firstLine.substring(0, 40) + '...'
-            : firstLine;
+        return firstLine.length > 40 ? firstLine.substring(0, 40) + '...' : firstLine;
     } catch (error) {
         console.error('Error generating preview:', error);
         return 'Error generating preview';
@@ -169,4 +165,4 @@ export const getContextualPreviewContent = (
         console.error('Error parsing Lexical content:', error);
         return 'Error parsing content';
     }
-}; 
+};

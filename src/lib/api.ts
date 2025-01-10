@@ -4,7 +4,10 @@ import { SearchResults } from '@/types/state';
 import { getDeviceLocation, getDeviceName } from '@/utils/metadataUtils';
 
 class ApiError extends Error {
-    constructor(public status: number, message: string) {
+    constructor(
+        public status: number,
+        message: string
+    ) {
         super(message);
         this.name = 'ApiError';
     }
@@ -32,7 +35,7 @@ export async function fetchRecommendedBlocks(blockId: string): Promise<Block[]> 
     const response = await fetch(`/api/blocks/recommended/${blockId}`);
     const blocks = await handleResponse<Block[]>(response);
     // Deduplicate blocks by ID
-    return Array.from(new Map(blocks.map(block => [block.id, block])).values());
+    return Array.from(new Map(blocks.map((block) => [block.id, block])).values());
 }
 
 export async function createBlock(block: BlockInput): Promise<Block> {
@@ -94,4 +97,4 @@ export async function traceInteractionContext(id: string): Promise<void> {
     });
 
     return handleResponse<void>(response);
-} 
+}

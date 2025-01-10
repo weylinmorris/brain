@@ -10,30 +10,36 @@ export function useSearch() {
 
     const { state, dispatch } = context;
 
-    const performSearch = useCallback(async (query: string) => {
-        try {
-            dispatch({ type: 'START_LOADING' });
-            const results = await searchBlocks(query);
-            dispatch({ type: 'SET_RESULTS', results });
-            return results;
-        } catch (error) {
-            dispatch({ 
-                type: 'SET_ERROR', 
-                error: error instanceof Error ? error.message : 'Failed to perform search' 
-            });
-            throw error;
-        } finally {
-            dispatch({ type: 'FINISH_LOADING' });
-        }
-    }, [dispatch]);
+    const performSearch = useCallback(
+        async (query: string) => {
+            try {
+                dispatch({ type: 'START_LOADING' });
+                const results = await searchBlocks(query);
+                dispatch({ type: 'SET_RESULTS', results });
+                return results;
+            } catch (error) {
+                dispatch({
+                    type: 'SET_ERROR',
+                    error: error instanceof Error ? error.message : 'Failed to perform search',
+                });
+                throw error;
+            } finally {
+                dispatch({ type: 'FINISH_LOADING' });
+            }
+        },
+        [dispatch]
+    );
 
     const clearSearch = useCallback(() => {
         dispatch({ type: 'CLEAR_RESULTS' });
     }, [dispatch]);
 
-    const setSearchQuery = useCallback((query: string) => {
-        dispatch({ type: 'SET_QUERY', query });
-    }, [dispatch]);
+    const setSearchQuery = useCallback(
+        (query: string) => {
+            dispatch({ type: 'SET_QUERY', query });
+        },
+        [dispatch]
+    );
 
     return {
         query: state.query,
@@ -42,6 +48,6 @@ export function useSearch() {
         error: state.error,
         performSearch,
         clearSearch,
-        setSearchQuery
+        setSearchQuery,
     };
-} 
+}

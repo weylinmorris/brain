@@ -18,4 +18,4 @@ export type BlockAction =
     | { type: 'UPDATE_BLOCK'; block: Block }
     | { type: 'REMOVE_BLOCK'; id: string }
     | { type: 'SET_ACTIVE_BLOCK'; id: string }
-    | { type: 'CLEAR_ACTIVE_BLOCK' }; 
+    | { type: 'CLEAR_ACTIVE_BLOCK' };

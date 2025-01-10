@@ -35,36 +35,37 @@ export async function GET(
         const query = searchParams.get('query');
 
         if (!query) {
-            return NextResponse.json(
-                { error: 'Query parameter is required' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
         }
 
         // Classify the query
-        const queryType = await classifyQuery(query) as QueryType;
-        
+        const queryType = (await classifyQuery(query)) as QueryType;
+
         const blocks = await db.blocks.searchBlocks(query, 0.25);
-        
+
         // Flatten the blocks object
-        const flattenedBlocks: Block[] = [...blocks.contentMatches, ...blocks.titleMatches, ...blocks.similarityMatches];
+        const flattenedBlocks: Block[] = [
+            ...blocks.contentMatches,
+            ...blocks.titleMatches,
+            ...blocks.similarityMatches,
+        ];
 
         // For questions, generate an answer using the relevant blocks
         if (queryType === 'question' && flattenedBlocks.length > 0) {
             const { answer, sources } = await generateAnswer(query, flattenedBlocks);
-            
+
             return NextResponse.json({
                 type: 'question',
                 answer,
                 blocks,
-                sources
+                sources,
             });
         }
 
         // For regular searches, return just the blocks
-        return NextResponse.json({ 
+        return NextResponse.json({
             type: 'search',
-            blocks
+            blocks,
         });
     } catch (error) {
         console.error('[Search Route] Error processing request:', {
@@ -72,23 +73,27 @@ export async function GET(
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
             cause: error instanceof Error ? error.cause : undefined,
-            code: error instanceof Error && 'code' in error ? (error as { code: string }).code : undefined
+            code:
+                error instanceof Error && 'code' in error
+                    ? (error as { code: string }).code
+                    : undefined,
         });
 
-        if (error instanceof Error && 'code' in error && (error as { code: string }).code === 'ECONNREFUSED') {
+        if (
+            error instanceof Error &&
+            'code' in error &&
+            (error as { code: string }).code === 'ECONNREFUSED'
+        ) {
             console.error('[Search Route] Database connection refused');
-            return NextResponse.json(
-                { error: 'Database connection failed' },
-                { status: 503 }
-            );
+            return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
         }
 
         return NextResponse.json(
             {
                 error: 'Internal server error',
-                details: error instanceof Error ? error.message : 'Unknown error'
+                details: error instanceof Error ? error.message : 'Unknown error',
             },
             { status: 500 }
         );
     }
-} 
+}

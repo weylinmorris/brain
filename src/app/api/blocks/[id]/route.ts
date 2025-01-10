@@ -17,10 +17,7 @@ export async function GET(
         const block = await db.blocks.getBlock(id);
 
         if (!block) {
-            return NextResponse.json(
-                { error: 'Block not found' },
-                { status: 404 }
-            );
+            return NextResponse.json({ error: 'Block not found' }, { status: 404 });
         }
 
         return NextResponse.json(block);
@@ -31,20 +28,24 @@ export async function GET(
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
             cause: error instanceof Error ? error.cause : undefined,
-            code: error instanceof Error && 'code' in error ? (error as { code: string }).code : undefined
+            code:
+                error instanceof Error && 'code' in error
+                    ? (error as { code: string }).code
+                    : undefined,
         });
 
-        if (error instanceof Error && 'code' in error && (error as { code: string }).code === 'ECONNREFUSED') {
-            return NextResponse.json(
-                { error: 'Database connection failed' },
-                { status: 503 }
-            );
+        if (
+            error instanceof Error &&
+            'code' in error &&
+            (error as { code: string }).code === 'ECONNREFUSED'
+        ) {
+            return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
         }
 
         return NextResponse.json(
             {
                 error: 'Internal server error',
-                details: error instanceof Error ? error.message : 'Unknown error'
+                details: error instanceof Error ? error.message : 'Unknown error',
             },
             { status: 500 }
         );
@@ -68,23 +69,17 @@ export async function PATCH(
     try {
         await db.ensureConnection();
 
-        const body = await request.json() as UpdateBlockRequest;
+        const body = (await request.json()) as UpdateBlockRequest;
 
         // Validate fields if they're present
         if (body.content !== undefined && typeof body.content !== 'string') {
             console.warn('PATCH /api/blocks/[id]: Invalid content', { id, content: body.content });
-            return NextResponse.json(
-                { error: 'Content must be a string' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'Content must be a string' }, { status: 400 });
         }
 
         if (body.title !== undefined && typeof body.title !== 'string') {
             console.warn('PATCH /api/blocks/[id]: Invalid title', { id, title: body.title });
-            return NextResponse.json(
-                { error: 'Title must be a string' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'Title must be a string' }, { status: 400 });
         }
 
         // Only include fields that are actually present in the request
@@ -103,27 +98,28 @@ export async function PATCH(
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
             cause: error instanceof Error ? error.cause : undefined,
-            code: error instanceof Error && 'code' in error ? (error as { code: string }).code : undefined
+            code:
+                error instanceof Error && 'code' in error
+                    ? (error as { code: string }).code
+                    : undefined,
         });
 
-        if (error instanceof Error && 'code' in error && (error as { code: string }).code === 'ECONNREFUSED') {
-            return NextResponse.json(
-                { error: 'Database connection failed' },
-                { status: 503 }
-            );
+        if (
+            error instanceof Error &&
+            'code' in error &&
+            (error as { code: string }).code === 'ECONNREFUSED'
+        ) {
+            return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
         }
 
         if (error instanceof Error && error.message === 'Block not found') {
-            return NextResponse.json(
-                { error: 'Block not found' },
-                { status: 404 }
-            );
+            return NextResponse.json({ error: 'Block not found' }, { status: 404 });
         }
 
         return NextResponse.json(
             {
                 error: 'Internal server error',
-                details: error instanceof Error ? error.message : 'Unknown error'
+                details: error instanceof Error ? error.message : 'Unknown error',
             },
             { status: 500 }
         );
@@ -149,29 +145,30 @@ export async function DELETE(
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
             cause: error instanceof Error ? error.cause : undefined,
-            code: error instanceof Error && 'code' in error ? (error as { code: string }).code : undefined
+            code:
+                error instanceof Error && 'code' in error
+                    ? (error as { code: string }).code
+                    : undefined,
         });
 
-        if (error instanceof Error && 'code' in error && (error as { code: string }).code === 'ECONNREFUSED') {
-            return NextResponse.json(
-                { error: 'Database connection failed' },
-                { status: 503 }
-            );
+        if (
+            error instanceof Error &&
+            'code' in error &&
+            (error as { code: string }).code === 'ECONNREFUSED'
+        ) {
+            return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
         }
 
         if (error instanceof Error && error.message === 'Block not found') {
-            return NextResponse.json(
-                { error: 'Block not found' },
-                { status: 404 }
-            );
+            return NextResponse.json({ error: 'Block not found' }, { status: 404 });
         }
 
         return NextResponse.json(
             {
                 error: 'Internal server error',
-                details: error instanceof Error ? error.message : 'Unknown error'
+                details: error instanceof Error ? error.message : 'Unknown error',
             },
             { status: 500 }
         );
     }
-} 
+}

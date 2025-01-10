@@ -1,10 +1,10 @@
 'use client';
 
-import { useBlock } from "@/hooks/useBlock";
-import { useEffect } from "react";
-import BlockPreview from "@/components/blocks/BlockPreview";
-import { Block } from "@/types/block";
-import { TabType } from "@/app/page";
+import { useBlock } from '@/hooks/useBlock';
+import { useEffect } from 'react';
+import BlockPreview from '@/components/blocks/BlockPreview';
+import { Block } from '@/types/block';
+import { TabType } from '@/app/page';
 
 interface RecommendedNotesProps {
     setActiveTab: (tab: TabType) => void;
@@ -24,9 +24,11 @@ export default function RecommendedNotes({ setActiveTab }: RecommendedNotesProps
     };
 
     return (
-        <div className="flex-1 overflow-auto p-2 w-full">
-            { recommendedBlocks.length === 0 && (
-                <div className="text-center text-sm font-semibold mt-2 text-gray-500">No recommended notes found</div>
+        <div className="w-full flex-1 overflow-auto p-2">
+            {recommendedBlocks.length === 0 && (
+                <div className="mt-2 text-center text-sm font-semibold text-gray-500">
+                    No recommended notes found
+                </div>
             )}
 
             {recommendedBlocks?.map((block: Block) => (
@@ -41,4 +43,4 @@ export default function RecommendedNotes({ setActiveTab }: RecommendedNotesProps
             ))}
         </div>
     );
-} 
+}
