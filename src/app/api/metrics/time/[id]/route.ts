@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db/client';
 
-interface RouteContext {
-    params: {
-        id: string;
-    };
-}
+type RouteParams = { params: Promise<{ id: string }> };
 
 export async function POST(
     _: NextRequest,
-    context: RouteContext
+    context: RouteParams
 ): Promise<NextResponse<Record<string, never> | { error: string; details?: string }>> {
     try {
         await db.ensureConnection();
 
-        const { id } = context.params;
+        const { id } = await context.params;
 
         await db.smartLinks.traceTime(id, 'VIEW');
 

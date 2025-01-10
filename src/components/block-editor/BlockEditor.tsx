@@ -82,7 +82,7 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ className }) => {
         setEditorKey(prev => prev + 1);
         initialContentRef.current = activeBlock?.content || null;
         setTitle(activeBlock?.title || '');
-    }, [activeBlockId]);
+    }, [activeBlockId, activeBlock?.content, activeBlock?.title]);
 
     useEffect(() => {
         setMounted(true);

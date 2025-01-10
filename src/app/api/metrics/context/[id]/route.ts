@@ -2,11 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db/client';
 import { GeoLocation } from '@/types/database';
 
-interface RouteContext {
-    params: {
-        id: string;
-    };
-}
+type RouteParams = { params: Promise<{ id: string }> };
 
 interface ContextRequest {
     device?: string;
@@ -15,13 +11,13 @@ interface ContextRequest {
 
 export async function POST(
     request: NextRequest,
-    context: RouteContext
+    context: RouteParams
 ): Promise<NextResponse<Record<string, never> | { error: string; details?: string }>> {
     try {
         await db.ensureConnection();
 
         const body = await request.json() as ContextRequest;
-        const { id } = context.params;
+        const { id } = await context.params;
 
         await db.smartLinks.traceContext(id, body.device, body.location);
 

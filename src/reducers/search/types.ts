@@ -1,4 +1,4 @@
-import { SearchResults } from '@/types/search';
+import { SearchResults } from '../../types/state';
 
 export interface SearchState {
     query: string;

@@ -2,15 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db/client';
 import { Block } from '@/types/block';
 
-interface RouteContext {
-    params: {
-        id: string;
-    };
-}
+type RouteParams = { params: Promise<{ id: string }> };
 
 export async function GET(
     request: NextRequest,
-    context: RouteContext
+    context: RouteParams
 ): Promise<NextResponse<Block[] | { error: string; details?: string }>> {
     const { id } = await context.params;
 

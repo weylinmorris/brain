@@ -16,9 +16,9 @@ const ThemeToggle: React.FC = () => {
         
         // Update meta tags with the correct colors
         const updateMeta = (name: string, content: string): void => {
-            let meta = document.head.querySelector(`meta[name="${name}"]`);
+            let meta = document.head.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
             if (!meta) {
-                meta = document.createElement('meta');
+                meta = document.createElement('meta') as HTMLMetaElement;
                 meta.name = name;
                 document.head.appendChild(meta);
             }

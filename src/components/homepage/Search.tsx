@@ -112,12 +112,6 @@ function Search() {
         setIsLoading(true);
         try {
             const results = await performSearch(query);
-            console.log('Search API response:', {
-                results,
-                type: results?.type,
-                hasBlocks: !!results?.blocks,
-                blocksStructure: results?.blocks ? 'Array length: ' + results.blocks.length : 'No blocks'
-            });
             setHasResults(true);
             setIsOpen(true);
         } catch (error) {
@@ -302,7 +296,7 @@ function Search() {
                             </div>
                         ) : (
                             <div className="max-h-[40rem] overflow-y-auto divide-y divide-neutral-200 dark:divide-neutral-700">
-                                {searchResults?.type === 'question' && searchResults?.answer && (
+                                {searchResults?.answer && (
                                     <AnswerDisplay
                                         answer={searchResults.answer}
                                         sources={searchResults.sources ?? []}

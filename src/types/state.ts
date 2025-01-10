@@ -15,7 +15,7 @@ export interface SearchResults {
     type: 'question' | 'search' | null;
     answer: string | null;
     sources: Block[];
-    blocks: BlockSearchResult[];
+    blocks: BlockSearchResult;
 }
 
 export type BlockAction =

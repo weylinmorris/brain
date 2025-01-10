@@ -3,15 +3,11 @@ import { db } from '@/db/client';
 import { BlockUpdate, GeoLocation } from '@/types/database';
 import { Block } from '@/types/block';
 
-interface RouteContext {
-    params: {
-        id: string;
-    };
-}
+type RouteParams = { params: Promise<{ id: string }> };
 
 export async function GET(
     request: NextRequest,
-    context: RouteContext
+    context: RouteParams
 ): Promise<NextResponse<Block | { error: string; details?: string }>> {
     const { id } = await context.params;
 
@@ -64,8 +60,8 @@ interface UpdateBlockRequest {
 }
 
 export async function PATCH(
-    request: NextRequest,
-    context: RouteContext
+    request: Request,
+    context: RouteParams
 ): Promise<NextResponse<Block | { error: string; details?: string }>> {
     const { id } = await context.params;
 
@@ -135,8 +131,8 @@ export async function PATCH(
 }
 
 export async function DELETE(
-    request: NextRequest,
-    context: RouteContext
+    request: Request,
+    context: RouteParams
 ): Promise<NextResponse<null | { error: string; details?: string }>> {
     const { id } = await context.params;
 

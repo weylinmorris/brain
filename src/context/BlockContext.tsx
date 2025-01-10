@@ -56,7 +56,7 @@ function BlockProviderContent({ children }: BlockProviderProps) {
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [state.activeBlockId]);
 
     return (
         <BlockContext.Provider value={{ state, dispatch }}>

@@ -48,18 +48,14 @@ export function useBlock() {
             dispatch({ type: 'START_LOADING' });
             await deleteBlock(id);
             dispatch({ type: 'REMOVE_BLOCK', id });
-
             addToast('Note deleted successfully', 'success');
         } catch (error) {
-            dispatch({ 
-                type: 'SET_ERROR', 
-                error: error instanceof Error ? error.message : 'Failed to delete block' 
-            });
+            dispatch({ type: 'SET_ERROR', error: error instanceof Error ? error.message : 'Failed to delete block' });
             throw error;
         } finally {
             dispatch({ type: 'FINISH_LOADING' });
         }
-    }, [dispatch]);
+    }, [dispatch, addToast]);
 
     const getRecommendedBlocks = useCallback(async (blockId: string) => {
         try {

@@ -6,8 +6,7 @@ function useDebounce<T extends AnyFunction>(
     callback: T,
     delay: number
 ): (...args: Parameters<T>) => void {
-    // Initialize with undefined and properly type the timeout
-    const timeoutRef = useRef<number>();
+    const timeoutRef = useRef<number>(0);
 
     useEffect(() => {
         return () => {

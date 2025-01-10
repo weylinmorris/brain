@@ -71,7 +71,7 @@ function transformLogseqBlocks(logseqData: LogseqData): BlockInput[] {
                             }
                         ],
                         direction: "ltr",
-                        format: "",
+                        format: 0,
                         indent: 0,
                         type: "paragraph",
                         version: 1,
@@ -80,7 +80,7 @@ function transformLogseqBlocks(logseqData: LogseqData): BlockInput[] {
                     }
                 ],
                 direction: "ltr",
-                format: "",
+                format: 0,
                 indent: 0,
                 type: "root",
                 version: 1

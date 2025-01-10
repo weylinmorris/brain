@@ -1,5 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import _ from 'lodash';
 import { Block } from '../../../types/block';
@@ -37,7 +37,7 @@ const formatDate = (date: Date) => {
 function SavePlugin({ onSave, saveStatus, block }: { onSave: (json: string) => void, saveStatus: string, block: Block }) {
     const [editor] = useLexicalComposerContext();
 
-    async function saveContent() {
+    const saveContent = useCallback(async () => {
         try {
             const editorState = editor.getEditorState();
             const json = JSON.stringify(editorState);
@@ -45,11 +45,11 @@ function SavePlugin({ onSave, saveStatus, block }: { onSave: (json: string) => v
         } catch (error) {
             console.error('Failed to save:', error);
         }
-    }
+    }, [editor, onSave]);
 
     const debouncedSave = useMemo(
         () => _.debounce(saveContent, 5000, { maxWait: 10000 }),
-        [editor, onSave]
+        [saveContent]
     );
 
     useEffect(() => {
