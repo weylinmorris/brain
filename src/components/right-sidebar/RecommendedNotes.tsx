@@ -25,6 +25,10 @@ export default function RecommendedNotes({ setActiveTab }: RecommendedNotesProps
 
     return (
         <div className="flex-1 overflow-auto p-2 w-full">
+            { recommendedBlocks.length === 0 && (
+                <div className="text-center text-sm font-semibold mt-2 text-gray-500">No recommended notes found</div>
+            )}
+
             {recommendedBlocks?.map((block: Block) => (
                 <div key={block.id} className="w-full">
                     <BlockPreview
