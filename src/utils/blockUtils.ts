@@ -21,7 +21,12 @@ const getAllLexicalContent = (content: LexicalContent): string => {
 };
 
 // Helper function to get balanced context around a match
-const getBalancedContext = (text: string, matchStart: number, matchLength: number, contextSize: number = 200): string => {
+const getBalancedContext = (
+    text: string,
+    matchStart: number,
+    matchLength: number,
+    contextSize: number = 200
+): string => {
     // Calculate how much context we can show on each side
     const beforeContext = Math.min(matchStart, contextSize);
     const afterContext = Math.min(text.length - (matchStart + matchLength), contextSize);
@@ -41,10 +46,7 @@ const getBalancedContext = (text: string, matchStart: number, matchLength: numbe
 };
 
 // Helper function to generate contextual preview
-const generateContextualPreview = (
-    content: string,
-    searchTerm: string
-): PreviewResult => {
+const generateContextualPreview = (content: string, searchTerm: string): PreviewResult => {
     if (!content) {
         return {
             preview: 'Empty block',
@@ -79,9 +81,9 @@ const generateContextualPreview = (
     const preview = getBalancedContext(content, matchIndex, searchTerm.length);
 
     // Calculate the new match position relative to our preview
-    const previewMatchStart = preview.startsWith('...') ? 
-        preview.toLowerCase().indexOf(searchTerm.toLowerCase()) :
-        matchIndex;
+    const previewMatchStart = preview.startsWith('...')
+        ? preview.toLowerCase().indexOf(searchTerm.toLowerCase())
+        : matchIndex;
 
     return {
         preview,

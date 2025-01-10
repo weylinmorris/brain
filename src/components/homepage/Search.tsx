@@ -167,7 +167,7 @@ function Search() {
         return (
             <span className="whitespace-pre-line">
                 {text?.slice(0, matchStart)}
-                <span className="bg-primary-200/50 dark:bg-primary-600/50 text-primary-900 dark:text-primary-100 font-bold rounded-sm px-1">
+                <span className="rounded-sm bg-primary-200/50 font-bold text-primary-900 dark:bg-primary-600/50 dark:text-primary-100">
                     {text?.slice(matchStart, matchEnd)}
                 </span>
                 {text?.slice(matchEnd)}
@@ -186,15 +186,19 @@ function Search() {
                 className="cursor-pointer px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-600"
             >
                 <div className="flex items-start justify-between">
-                    <div className="text-sm font-bold text-neutral-700 dark:text-neutral-100 min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 text-sm font-bold text-neutral-700 dark:text-neutral-100">
                         <div className="line-clamp-1">
-                            <HighlightedText 
-                                text={typeof titlePreview === 'string' ? titlePreview : titlePreview.preview || 'Untitled'} 
-                                searchTerm={query} 
+                            <HighlightedText
+                                text={
+                                    typeof titlePreview === 'string'
+                                        ? titlePreview
+                                        : titlePreview.preview || 'Untitled'
+                                }
+                                searchTerm={query}
                             />
                         </div>
                     </div>
-                    <span className="ml-2 text-xs text-neutral-300 flex-shrink-0">
+                    <span className="ml-2 flex-shrink-0 text-xs text-neutral-300">
                         {formatSimilarityPercent(similarity)} match
                     </span>
                 </div>
@@ -211,7 +215,7 @@ function Search() {
         if (!results || results.length === 0) return null;
 
         return (
-            <div className="py-2 divide-y divide-neutral-200 dark:divide-neutral-600 space-y-2">
+            <div className="space-y-2 divide-y divide-neutral-200 py-2 dark:divide-neutral-600">
                 <div className="px-4 py-2 dark:bg-neutral-700/50">
                     <h3 className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-300">
                         {title}
