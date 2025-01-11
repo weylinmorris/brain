@@ -145,7 +145,12 @@ export default function SwipeableNote({
             onContextMenu={handleContextMenu}
         >
             {/* Background that appears during swipe */}
-            <div className="absolute inset-0 flex items-center justify-end rounded-md bg-red-500 pr-4">
+            <div
+                className="absolute inset-0 flex items-center justify-end rounded-md bg-red-500 pr-4"
+                style={{
+                    opacity: swipeProgress
+                }}
+            >
                 <Trash2 className="text-white" size={20} />
             </div>
 
