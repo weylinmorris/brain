@@ -280,15 +280,6 @@ function Search() {
                         )}
                     </div>
 
-                    {hasResults && (
-                        <button
-                            onClick={() => setIsOpen(!isOpen)}
-                            className="absolute -bottom-6 right-0 text-xs text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
-                        >
-                            {isOpen ? 'Hide' : 'Show'} results
-                        </button>
-                    )}
-
                     <div
                         className={`absolute mt-1 w-full overflow-hidden rounded-md bg-neutral-50 shadow-lg duration-200 ease-in-out dark:bg-neutral-700 ${isOpen ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'} `}
                     >

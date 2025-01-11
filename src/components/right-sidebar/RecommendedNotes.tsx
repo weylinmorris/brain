@@ -26,7 +26,7 @@ export default function RecommendedNotes({ setActiveTab }: RecommendedNotesProps
     return (
         <div className="w-full flex-1 overflow-auto p-2">
             {recommendedBlocks.length === 0 && (
-                <div className="mt-2 text-center text-sm font-semibold text-gray-500">
+                <div className="mt-8 text-center text-sm font-semibold text-gray-500">
                     No recommended notes found
                 </div>
             )}

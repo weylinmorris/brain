@@ -36,6 +36,7 @@
 }
 .EditorTheme__paragraph {
     color: var(--editor-theme-text-color);
+    line-height: 1.8;
     margin: 0;
     position: relative;
 }
@@ -430,7 +431,7 @@
     list-style-position: outside;
 }
 .EditorTheme__listItem {
-    margin: 0 32px;
+    margin: 0 0 0 32px;
 }
 .EditorTheme__listItemChecked,
 .EditorTheme__listItemUnchecked {

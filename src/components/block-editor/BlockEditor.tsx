@@ -18,6 +18,7 @@ import _ from 'lodash';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
 import ToolbarPlugin from '@/components/block-editor/plugins/ToolbarPlugin';
+import BlockReader from '@/components/block-editor/BlockReader';
 import theme from '../../components/block-editor/EditorTheme';
 import { EditorConfig, BlockEditorProps, SaveStatus } from '@/types/editor-config';
 import { LexicalContent } from '@/types/lexical';
@@ -89,6 +90,7 @@ const EditorContent = ({ handleContentSave }: { handleContentSave: (content: str
 const BlockEditor: React.FC<BlockEditorProps> = ({ className }) => {
     const [mounted, setMounted] = useState(false);
     const [editorKey, setEditorKey] = useState(0);
+    const [isEditMode, setIsEditMode] = useState(false);
     const { modifyBlock, isLoading, error, blocks, activeBlockId } = useBlock();
     const activeBlock = blocks.find((block) => block.id === activeBlockId);
     const initialContentRef = useRef<string | null>(null);
@@ -211,12 +213,6 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ className }) => {
                 No note selected
             </div>
         );
-    if (isLoading)
-        return (
-            <div className="p-12 text-center font-bold text-neutral-500 dark:text-neutral-400">
-                Loading note...
-            </div>
-        );
     if (error) return <div className="p-12 text-center font-bold text-red-500">Error: {error}</div>;
 
     const currentEditorConfig: EditorConfig = {
@@ -226,53 +222,68 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ className }) => {
 
     return (
         <div className="flex h-full flex-col">
-            <textarea
-                value={title}
-                onChange={handleTitleChange}
-                onBlur={() => saveBlock(title, null)}
-                className="m-4 mb-4 w-full resize-none border-none bg-transparent text-2xl font-bold text-neutral-800 outline-none dark:text-neutral-50"
-                placeholder="Untitled"
-                rows={1}
-                ref={textareaRef}
-            />
+            <div className="flex items-center justify-between m-4 mb-2">
+                <textarea
+                    value={title}
+                    onChange={handleTitleChange}
+                    onBlur={() => saveBlock(title, null)}
+                    className="flex-1 resize-none border-none bg-transparent text-2xl font-bold text-neutral-800 outline-none dark:text-neutral-50"
+                    placeholder="Untitled"
+                    rows={1}
+                    ref={textareaRef}
+                    readOnly={!isEditMode}
+                />
+                <button
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    className="ml-2 text-sm rounded-md p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                >
+                    {isEditMode ? 'View' : 'Edit'}
+                </button>
+            </div>
 
             <div
-                className={`min-h-0 flex-1 overflow-hidden rounded-md border border-neutral-300 dark:border-neutral-600 ${className || ''}`}
+                className={`min-h-0 flex-1 overflow-hidden rounded-md ${isEditMode ? 'border border-neutral-300 dark:border-neutral-600' : ''} ${className || ''}`}
             >
-                <LexicalComposer key={editorKey} initialConfig={currentEditorConfig}>
-                    <div className="flex h-full flex-col">
-                        <ToolbarPlugin
-                            handleSave={handleContentSave}
-                            saveStatus={saveStatus === 'not-saved' ? 'error' : saveStatus}
-                            block={
-                                activeBlock || {
-                                    id: '',
-                                    title: '',
-                                    content: '',
-                                    type: 'text',
-                                    createdAt: new Date(),
-                                    updatedAt: new Date(),
-                                    plainText: '',
-                                    embeddings: [],
+                {isEditMode ? (
+                    <LexicalComposer key={editorKey} initialConfig={currentEditorConfig}>
+                        <div className="flex h-full flex-col">
+                            <ToolbarPlugin
+                                handleSave={handleContentSave}
+                                saveStatus={saveStatus === 'not-saved' ? 'error' : saveStatus}
+                                block={
+                                    activeBlock || {
+                                        id: '',
+                                        title: '',
+                                        content: '',
+                                        type: 'text',
+                                        createdAt: new Date(),
+                                        updatedAt: new Date(),
+                                        plainText: '',
+                                        embeddings: [],
+                                    }
                                 }
-                            }
-                            className="editor-toolbar"
-                        />
-                        <div className="relative min-h-0 max-w-none flex-1 overflow-auto font-serif [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 [&::-webkit-scrollbar]:w-2">
-                            <RichTextPlugin
-                                contentEditable={
-                                    <EditorContent handleContentSave={handleContentSave} />
-                                }
-                                ErrorBoundary={LexicalErrorBoundary}
+                                className="editor-toolbar"
                             />
-                            <AutoFocusPlugin />
-                            <CheckListPlugin />
-                            <HistoryPlugin />
-                            <ListPlugin />
-                            <TabIndentationPlugin />
+                            <div className="relative min-h-0 max-w-none flex-1 overflow-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 [&::-webkit-scrollbar]:w-2">
+                                <RichTextPlugin
+                                    contentEditable={
+                                        <EditorContent handleContentSave={handleContentSave} />
+                                    }
+                                    ErrorBoundary={LexicalErrorBoundary}
+                                />
+                                <AutoFocusPlugin />
+                                <CheckListPlugin />
+                                <HistoryPlugin />
+                                <ListPlugin />
+                                <TabIndentationPlugin />
+                            </div>
                         </div>
+                    </LexicalComposer>
+                ) : (
+                    <div className="h-full overflow-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 [&::-webkit-scrollbar]:w-2">
+                        <BlockReader content={activeBlock?.content || null} />
                     </div>
-                </LexicalComposer>
+                )}
             </div>
         </div>
     );
