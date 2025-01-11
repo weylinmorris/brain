@@ -2,7 +2,6 @@
 
 import { ChevronUpIcon, Upload } from 'lucide-react';
 import { useBlock } from '@/hooks/useBlock';
-import { useEditMode } from '@/hooks/useEditMode';
 import { useMemo, useState, ChangeEvent } from 'react';
 import SwipeableNote from '@/components/blocks/SwipeableNote';
 import ThemeToggle from '../../components/theme/ThemeToggle';
@@ -34,7 +33,6 @@ async function handleLogseqUpload(file: File): Promise<void> {
 
 function Sidebar({ setActiveTab }: SidebarProps) {
     const { blocks, addBlock, removeBlock, setActiveBlock } = useBlock();
-    const { setEditMode } = useEditMode();
     const [isRecentExpanded, setIsRecentExpanded] = useState<boolean>(true);
     const [isAllExpanded, setIsAllExpanded] = useState<boolean>(false);
 
@@ -58,13 +56,11 @@ function Sidebar({ setActiveTab }: SidebarProps) {
             updatedAt: now,
         });
 
-        setEditMode(true);
         setActiveBlock(newBlock.id);
         setActiveTab('editor');
     };
 
     const handleBlockClick = (block: Block): void => {
-        setEditMode(false);
         setActiveBlock(block.id);
         setActiveTab('editor');
     };

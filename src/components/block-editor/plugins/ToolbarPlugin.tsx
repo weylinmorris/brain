@@ -155,7 +155,7 @@ const ToolbarPlugin = ({
     }) => (
         <button
             onClick={onClick}
-            className={`rounded p-2 text-neutral-800 hover:bg-neutral-200 dark:text-neutral-50 dark:hover:bg-neutral-500 ${isActive ? 'bg-neutral-200 dark:bg-neutral-500' : ''}`}
+            className={`rounded p-2 text-neutral-800 hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-500 ${isActive ? 'bg-neutral-200 dark:bg-neutral-500' : ''}`}
             title={tooltip}
         >
             <Icon size={18} />
@@ -167,7 +167,7 @@ const ToolbarPlugin = ({
 
     return (
         <div
-            className={`flex flex-wrap items-center gap-1 border-b border-neutral-300 bg-neutral-50 p-2 dark:border-neutral-600 dark:bg-neutral-600 ${className || ''}`}
+            className={`flex flex-wrap items-center gap-1 border-b border-neutral-200 bg-neutral-50 p-2 dark:border-neutral-600 dark:bg-neutral-800 ${className || ''}`}
         >
             {/* History Controls */}
             <div className="flex items-center">

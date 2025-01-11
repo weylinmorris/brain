@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "checkall": "npm run lint && npm run typecheck && npm run format"
   },
   "dependencies": {
     "@lexical/code": "^0.21.0",

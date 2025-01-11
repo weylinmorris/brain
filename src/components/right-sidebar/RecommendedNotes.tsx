@@ -1,7 +1,6 @@
 'use client';
 
 import { useBlock } from '@/hooks/useBlock';
-import { useEditMode } from '@/hooks/useEditMode';
 import { useEffect } from 'react';
 import BlockPreview from '@/components/blocks/BlockPreview';
 import { Block } from '@/types/block';
@@ -13,7 +12,6 @@ interface RecommendedNotesProps {
 
 export default function RecommendedNotes({ setActiveTab }: RecommendedNotesProps) {
     const { activeBlockId, setActiveBlock, recommendedBlocks, getRecommendedBlocks } = useBlock();
-    const { setEditMode } = useEditMode();
 
     useEffect(() => {
         if (!activeBlockId) return;
@@ -21,7 +19,6 @@ export default function RecommendedNotes({ setActiveTab }: RecommendedNotesProps
     }, [activeBlockId, getRecommendedBlocks]);
 
     const handleBlockClick = (block: Block): void => {
-        setEditMode(false);
         setActiveBlock(block.id);
         setActiveTab('editor');
     };
