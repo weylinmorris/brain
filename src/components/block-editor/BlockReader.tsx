@@ -96,7 +96,7 @@ const BlockReader: React.FC<BlockReaderProps> = ({ content, className }) => {
                     'text' in child && child.text.length > 0
                 );
                 return (
-                    <p key={index} className="EditorTheme__paragraph">
+                    <p key={index} className="EditorTheme__paragraph break-words">
                         {hasContent ? renderTextContent(node) : '\u00A0'}
                     </p>
                 );
@@ -106,7 +106,7 @@ const BlockReader: React.FC<BlockReaderProps> = ({ content, className }) => {
                 const headingNode = node as HeadingNodeType;
                 const HeadingTag = headingNode.tag;
                 return (
-                    <HeadingTag key={index} className={`EditorTheme__${headingNode.tag}`}>
+                    <HeadingTag key={index} className={`EditorTheme__${headingNode.tag} break-words`}>
                         {renderTextContent(node)}
                     </HeadingTag>
                 );
@@ -173,7 +173,7 @@ const BlockReader: React.FC<BlockReaderProps> = ({ content, className }) => {
 
             case 'quote':
                 return (
-                    <blockquote key={index} className="EditorTheme__quote">
+                    <blockquote key={index} className="EditorTheme__quote break-words">
                         {renderTextContent(node)}
                     </blockquote>
                 );
@@ -181,8 +181,8 @@ const BlockReader: React.FC<BlockReaderProps> = ({ content, className }) => {
             case 'code':
                 const codeNode = node as CodeNodeType;
                 return (
-                    <pre key={index} className="EditorTheme__code" data-gutter="1">
-                        <code>{renderTextContent(node)}</code>
+                    <pre key={index} className="EditorTheme__code whitespace-pre-wrap break-words overflow-x-auto" data-gutter="1">
+                        <code className="break-words">{renderTextContent(node)}</code>
                     </pre>
                 );
 
@@ -194,7 +194,7 @@ const BlockReader: React.FC<BlockReaderProps> = ({ content, className }) => {
     try {
         const parsedContent = JSON.parse(content) as LexicalContent;
         return (
-            <div className={`EditorTheme__ltr p-4 ${className || ''}`}>
+            <div className={`EditorTheme__ltr p-4 max-w-full break-words ${className || ''}`}>
                 {(parsedContent.root.children as BlockNodeType[]).map((node, index) => renderNode(node, index))}
             </div>
         );
