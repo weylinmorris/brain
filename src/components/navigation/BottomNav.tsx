@@ -10,7 +10,7 @@ interface BottomNavProps {
 
 export function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
     return (
-        <div className="fixed bottom-0 left-0 right-0 border-t border-neutral-200 bg-neutral-100 pb-7 dark:border-neutral-500 dark:bg-neutral-600 md:hidden">
+        <div className="fixed bottom-0 left-0 right-0 border-t border-neutral-200 bg-neutral-100 pb-7 dark:border-neutral-500 dark:bg-neutral-600 xl:hidden">
             <div className="flex h-14 items-center justify-around">
                 <button
                     onClick={() => setActiveTab('notes')}

@@ -6,7 +6,7 @@ import { TabType } from '@/app/page';
 
 // Shared container styles
 const containerStyles =
-    'h-[calc(var(--vh,1vh)*100)] bg-neutral-50 md:bg-neutral-100 dark:bg-neutral-800 md:dark:bg-neutral-600 w-full md:w-96 flex flex-col flex-shrink-0 text-neutral-900 dark:text-neutral-200';
+    'h-[calc(var(--vh,1vh)*100)] bg-neutral-50 xl:bg-neutral-100 dark:bg-neutral-800 xl:dark:bg-neutral-600 w-full xl:w-96 flex flex-col flex-shrink-0 text-neutral-900 dark:text-neutral-200';
 
 interface RecommendedProps {
     setActiveTab: React.Dispatch<React.SetStateAction<TabType>>;

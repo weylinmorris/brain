@@ -24,7 +24,7 @@ const Main: React.FC = () => {
     return (
         <div
             style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
-            className="flex w-full flex-col overflow-hidden bg-neutral-50 p-2 pb-24 dark:bg-neutral-800 md:pb-2"
+            className="flex w-full flex-col overflow-hidden bg-neutral-50 p-2 pb-24 dark:bg-neutral-800 xl:pb-2"
         >
             <Search />
             <div className="min-h-0 flex-1">

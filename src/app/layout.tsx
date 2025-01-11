@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Metadata, Viewport } from 'next';
+import { RootProvider } from '@/context';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -42,15 +43,17 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <body
                 className={`${geistSans.variable} ${geistMono.variable} h-full bg-neutral-50 text-black antialiased dark:bg-neutral-800 dark:text-white`}
             >
-                <div
-                    className="min-h-full"
-                    style={{
-                        paddingTop: 'env(safe-area-inset-top)',
-                        minHeight: '100vh',
-                    }}
-                >
-                    {children}
-                </div>
+                <RootProvider>
+                    <div
+                        className="min-h-full"
+                        style={{
+                            paddingTop: 'env(safe-area-inset-top)',
+                            minHeight: '100vh',
+                        }}
+                    >
+                        {children}
+                    </div>
+                </RootProvider>
             </body>
         </html>
     );

@@ -2,6 +2,7 @@
 
 import { ChevronUpIcon, Upload } from 'lucide-react';
 import { useBlock } from '@/hooks/useBlock';
+import { useEditMode } from '@/hooks/useEditMode';
 import { useMemo, useState, ChangeEvent } from 'react';
 import SwipeableNote from '@/components/blocks/SwipeableNote';
 import ThemeToggle from '../../components/theme/ThemeToggle';
@@ -33,6 +34,7 @@ async function handleLogseqUpload(file: File): Promise<void> {
 
 function Sidebar({ setActiveTab }: SidebarProps) {
     const { blocks, addBlock, removeBlock, setActiveBlock } = useBlock();
+    const { setEditMode } = useEditMode();
     const [isRecentExpanded, setIsRecentExpanded] = useState<boolean>(true);
     const [isAllExpanded, setIsAllExpanded] = useState<boolean>(false);
 
@@ -56,11 +58,13 @@ function Sidebar({ setActiveTab }: SidebarProps) {
             updatedAt: now,
         });
 
+        setEditMode(true);
         setActiveBlock(newBlock.id);
         setActiveTab('editor');
     };
 
     const handleBlockClick = (block: Block): void => {
+        setEditMode(false);
         setActiveBlock(block.id);
         setActiveTab('editor');
     };
@@ -94,7 +98,7 @@ function Sidebar({ setActiveTab }: SidebarProps) {
     return (
         <div
             style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
-            className="bg:neutral-50 flex w-full flex-shrink-0 flex-col p-2 pb-24 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-50 md:w-96 md:bg-neutral-100 md:pb-2 md:dark:bg-neutral-600"
+            className="bg:neutral-50 flex w-full flex-shrink-0 flex-col p-2 pb-24 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-50 xl:w-96 xl:bg-neutral-100 xl:pb-2 xl:dark:bg-neutral-600"
         >
             <div className="flex h-full flex-col">
                 {/* Top section with New Note button */}
