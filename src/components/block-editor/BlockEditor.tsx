@@ -108,15 +108,15 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ className }) => {
 
     // Handle block and content updates
     useEffect(() => {
-        console.log('Block or content update - activeBlockId:', activeBlockId);
-
         if (!activeBlock) return;
 
         // Reset editor only when switching blocks
         if (activeBlockId !== activeBlock.id) {
-            console.log('Switching blocks - resetting editor');
             setEditorKey((prev) => prev + 1);
         }
+
+        // Set view mode to true
+        setIsEditMode(false);
 
         // Update content and title
         initialContentRef.current = activeBlock.content || null;
