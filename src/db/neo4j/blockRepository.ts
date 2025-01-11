@@ -13,12 +13,33 @@ import {
 } from '@/types/database';
 import { Block } from '@/types/block';
 
-const RATE_LIMIT = 80;
+const RATE_LIMIT = 500;
 const PERIOD = 60 * 1000; // 1 minute in milliseconds
+const TOKEN_LIMIT = 8192; // OpenAI's token limit for embeddings
 const limit = pLimit(Math.floor(RATE_LIMIT));
 
 async function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Rough approximation of token count - OpenAI generally uses ~4 chars per token
+function isWithinTokenLimit(text: string): boolean {
+    // Using a conservative 4 characters per token estimate
+    return text.length <= TOKEN_LIMIT * 4;
+}
+
+async function generateEmbeddings(openai: OpenAI, text: string): Promise<number[] | null> {
+    if (!isWithinTokenLimit(text)) {
+        console.warn('Text exceeds token limit, skipping embeddings generation');
+        return null;
+    }
+
+    const embeddingResponse = await openai.embeddings.create({
+        model: 'text-embedding-3-small',
+        input: text,
+        encoding_format: 'float',
+    });
+    return embeddingResponse.data[0].embedding;
 }
 
 export class BlockRepository implements BlockRepositoryInterface {
@@ -59,37 +80,31 @@ export class BlockRepository implements BlockRepositoryInterface {
 
         try {
             const plainText = getPlainText(input.content);
-            const embeddingResponse = await openai.embeddings.create({
-                model: 'text-embedding-3-small',
-                input: `${input.title} ${plainText}`,
-                encoding_format: 'float',
-            });
-            const embeddings = embeddingResponse.data[0].embedding;
-
-            console.log(embeddings);
+            const combinedText = `${input.title} ${plainText}`;
+            const embeddings = await generateEmbeddings(openai, combinedText);
 
             const query = `
-                CREATE (b:Block {
-                    id: $id,
-                    title: $title,
-                    content: $content,
-                    plainText: $plainText,
-                    embeddings: $embeddings,
-                    type: $type,
-                    createdAt: datetime(),
-                    updatedAt: datetime()
-                })
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .type,
-                    .plainText,
-                    .embeddings,
-                    .createdAt,
-                    .updatedAt
-                } as block
-            `;
+                CREATE (b:Block {
+                    id: $id,
+                    title: $title,
+                    content: $content,
+                    plainText: $plainText,
+                    embeddings: $embeddings,
+                    type: $type,
+                    createdAt: datetime(),
+                    updatedAt: datetime()
+                })
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .type,
+                    .plainText,
+                    .embeddings,
+                    .createdAt,
+                    .updatedAt
+                } as block
+            `;
 
             const result = await this.neo4j.executeWrite(query, {
                 id: blockId,
@@ -185,18 +200,12 @@ export class BlockRepository implements BlockRepositoryInterface {
 
                         await sleep(timePerRequest * index);
 
-                        const embeddingResponse = await this.ensureOpenAI().embeddings.create({
-                            model: 'text-embedding-3-small',
-                            input: plainText,
-                            encoding_format: 'float',
-                        });
+                        const embeddings = await generateEmbeddings(this.ensureOpenAI(), plainText);
 
                         processedBlocks++;
                         console.log(
                             `Processed ${processedBlocks}/${totalBlocks} blocks (${Math.round((processedBlocks / totalBlocks) * 100)}%)`
                         );
-
-                        const embeddings = embeddingResponse.data[0].embedding;
 
                         return {
                             params: {
@@ -218,28 +227,28 @@ export class BlockRepository implements BlockRepositoryInterface {
                 );
 
                 const query = `
-                    UNWIND $blocks as block
-                    CREATE (b:Block {
-                        id: block.id,
-                        title: block.title,
-                        content: block.content,
-                        plainText: block.plainText,
-                        embeddings: block.embeddings,
-                        type: block.type,
-                        createdAt: datetime(),
-                        updatedAt: datetime()
-                    })
-                    RETURN b {
-                        .id,
-                        .title,
-                        .content,
-                        .type,
-                        .plainText,
-                        .embeddings,
-                        .createdAt,
-                        .updatedAt
-                    } as block
-                `;
+                    UNWIND $blocks as block
+                    CREATE (b:Block {
+                        id: block.id,
+                        title: block.title,
+                        content: block.content,
+                        plainText: block.plainText,
+                        embeddings: block.embeddings,
+                        type: block.type,
+                        createdAt: datetime(),
+                        updatedAt: datetime()
+                    })
+                    RETURN b {
+                        .id,
+                        .title,
+                        .content,
+                        .type,
+                        .plainText,
+                        .embeddings,
+                        .createdAt,
+                        .updatedAt
+                    } as block
+                `;
 
                 const blocksParam = batchParams.map(({ params }) => ({
                     id: params.id,
@@ -318,26 +327,26 @@ export class BlockRepository implements BlockRepositoryInterface {
             // First get exact matches (case-insensitive)
             const exactMatches = await this.neo4j.executeQuery(
                 `
-                MATCH (b:Block)
-                WITH b, 
-                    toLower(b.title) AS lowerTitle,
-                    toLower(b.plainText) AS lowerContent,
-                    $query AS searchQuery
-                WHERE lowerTitle CONTAINS searchQuery OR lowerContent CONTAINS searchQuery
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .plainText,
-                    .type,
-                    .createdAt,
-                    .updatedAt,
-                    matchType: CASE 
-                        WHEN lowerTitle CONTAINS searchQuery THEN 'title'
-                        WHEN lowerContent CONTAINS searchQuery THEN 'content'
-                    END
-                } AS block
-            `,
+                MATCH (b:Block)
+                WITH b, 
+                    toLower(b.title) AS lowerTitle,
+                    toLower(b.plainText) AS lowerContent,
+                    $query AS searchQuery
+                WHERE lowerTitle CONTAINS searchQuery OR lowerContent CONTAINS searchQuery
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .plainText,
+                    .type,
+                    .createdAt,
+                    .updatedAt,
+                    matchType: CASE 
+                        WHEN lowerTitle CONTAINS searchQuery THEN 'title'
+                        WHEN lowerContent CONTAINS searchQuery THEN 'content'
+                    END
+                } AS block
+            `,
                 { query: lowercaseQuery }
             );
 
@@ -369,22 +378,24 @@ export class BlockRepository implements BlockRepositoryInterface {
 
             const similarityMatches = await this.neo4j.executeQuery(
                 `
-                MATCH (b:Block)
-                WHERE NOT b.id IN $exactMatchIds
-                WITH b, gds.similarity.cosine(b.embeddings, $queryEmbedding) AS similarity
-                WHERE similarity > $threshold
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .plainText,
-                    .type,
-                    .createdAt,
-                    .updatedAt
-                } AS block, similarity
-                ORDER BY similarity DESC
-                LIMIT 10
-            `,
+                    MATCH (b:Block)
+                    WHERE NOT b.id IN $exactMatchIds
+                    AND b.embeddings IS NOT NULL
+                    AND size(b.embeddings) > 0 
+                    WITH b, gds.similarity.cosine(b.embeddings, $queryEmbedding) AS similarity
+                    WHERE similarity > $threshold
+                    RETURN b {
+                        .id,
+                        .title,
+                        .content,
+                        .plainText,
+                        .type,
+                        .createdAt,
+                        .updatedAt
+                    } AS block, similarity
+                    ORDER BY similarity DESC
+                    LIMIT 10
+            `,
                 {
                     queryEmbedding,
                     threshold,
@@ -412,19 +423,19 @@ export class BlockRepository implements BlockRepositoryInterface {
     async getBlocks(includeEmbeddings = false): Promise<Block[]> {
         try {
             const query = `
-                MATCH (b:Block)
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .plainText,
-                    .type,
-                    .createdAt,
-                    .updatedAt
-                    ${includeEmbeddings ? ', .embeddings' : ''}
-                } as block
-                ORDER BY b.updatedAt DESC
-            `;
+                MATCH (b:Block)
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .plainText,
+                    .type,
+                    .createdAt,
+                    .updatedAt
+                    ${includeEmbeddings ? ', .embeddings' : ''}
+                } as block
+                ORDER BY b.updatedAt DESC
+            `;
 
             const result = await this.neo4j.executeQuery(query);
 
@@ -452,17 +463,17 @@ export class BlockRepository implements BlockRepositoryInterface {
     ): Promise<Block> {
         try {
             const query = `
-                MATCH (b:Block {id: $id})
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .type,
-                    .createdAt,
-                    .updatedAt
-                    ${includeEmbeddings ? ', .embeddings' : ''}
-                } as block
-            `;
+                MATCH (b:Block {id: $id})
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .type,
+                    .createdAt,
+                    .updatedAt
+                    ${includeEmbeddings ? ', .embeddings' : ''}
+                } as block
+            `;
 
             const result = await this.neo4j.executeQuery(query, { id });
 
@@ -506,29 +517,25 @@ export class BlockRepository implements BlockRepositoryInterface {
     ): Promise<Block> {
         try {
             const plainText = getPlainText(updates.content || '');
-            const embeddingResponse = await this.ensureOpenAI().embeddings.create({
-                model: 'text-embedding-3-small',
-                input: `${updates.title} ${plainText}`,
-                encoding_format: 'float',
-            });
-            const embeddings = embeddingResponse.data[0].embedding;
+            const combinedText = `${updates.title} ${plainText}`;
+            const embeddings = await generateEmbeddings(this.ensureOpenAI(), combinedText);
 
             const query = `
-                MATCH (b:Block {id: $id})
-                SET b += $updates,
-                    b.plainText = $plainText,
-                    b.embeddings = $embeddings,
-                    b.updatedAt = datetime()
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .plainText,
-                    .type,
-                    .createdAt,
-                    .updatedAt
-                } as block
-            `;
+                MATCH (b:Block {id: $id})
+                SET b += $updates,
+                    b.plainText = $plainText,
+                    b.embeddings = $embeddings,
+                    b.updatedAt = datetime()
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .plainText,
+                    .type,
+                    .createdAt,
+                    .updatedAt
+                } as block
+            `;
 
             const result = await this.neo4j.executeWrite(query, {
                 id,
@@ -580,9 +587,9 @@ export class BlockRepository implements BlockRepositoryInterface {
     async deleteBlock(id: string): Promise<void> {
         try {
             const query = `
-                MATCH (b:Block {id: $id})
-                DETACH DELETE b
-            `;
+                MATCH (b:Block {id: $id})
+                DETACH DELETE b
+            `;
 
             await this.neo4j.executeWrite(query, { id });
         } catch (error) {

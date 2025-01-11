@@ -98,3 +98,12 @@ export async function traceInteractionContext(id: string): Promise<void> {
 
     return handleResponse<void>(response);
 }
+
+export async function importBlocks(file: File): Promise<void> {
+    const response = await fetch('/api/blocks/import', {
+        method: 'POST',
+        body: file,
+    });
+
+    return handleResponse<void>(response);
+}

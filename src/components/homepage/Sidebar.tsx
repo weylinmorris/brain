@@ -178,7 +178,22 @@ function Sidebar({ setActiveTab }: SidebarProps) {
                 {/* Bottom bar */}
                 <div className="mt-4 flex-shrink-0">
                     <div className="flex items-center justify-end space-x-2">
+                        <input
+                            type="file"
+                            id="fileInput"
+                            className="hidden"
+                            onChange={handleFileChange}
+                            accept=".json,.md"
+                        />
+                        <button 
+                            onClick={() => document.getElementById('fileInput')?.click()}
+                            className="rounded-md bg-neutral-100 p-4 text-neutral-900 hover:bg-neutral-200 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500"
+                            aria-label="Import file"
+                        >
+                            <Upload size={16} />
+                        </button>
                         <ThemeToggle />
+
                     </div>
                 </div>
             </div>
