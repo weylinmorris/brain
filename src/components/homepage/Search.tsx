@@ -71,12 +71,12 @@ function AnswerDisplay({ answer, sources, onSourceClick, query }: AnswerDisplayP
 
     return (
         <div className="divide-y divide-neutral-200 dark:divide-neutral-600">
-            <div className="pb-2 pt-6 px-4 dark:bg-neutral-700">
+            <div className="px-4 pb-2 pt-6 dark:bg-neutral-700">
                 <h3 className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-300">
                     {query}
                 </h3>
             </div>
-            <div className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-200 p-4">
+            <div className="p-4 text-sm leading-relaxed text-neutral-700 dark:text-neutral-200">
                 {renderAnswerWithSources(answer)}
             </div>
         </div>
@@ -222,7 +222,7 @@ function Search() {
 
         return (
             <div className="divide-y divide-neutral-200 dark:divide-neutral-600">
-                <div className="pb-2 pt-6 px-4 dark:bg-neutral-700">
+                <div className="px-4 pb-2 pt-6 dark:bg-neutral-700">
                     <h3 className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-300">
                         {title}
                     </h3>

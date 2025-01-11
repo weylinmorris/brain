@@ -185,7 +185,7 @@ function Sidebar({ setActiveTab }: SidebarProps) {
                             onChange={handleFileChange}
                             accept=".json,.md"
                         />
-                        <button 
+                        <button
                             onClick={() => document.getElementById('fileInput')?.click()}
                             className="rounded-md bg-neutral-100 p-4 text-neutral-900 hover:bg-neutral-200 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500"
                             aria-label="Import file"
@@ -193,7 +193,6 @@ function Sidebar({ setActiveTab }: SidebarProps) {
                             <Upload size={16} />
                         </button>
                         <ThemeToggle />
-
                     </div>
                 </div>
             </div>

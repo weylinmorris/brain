@@ -16,31 +16,10 @@ import { Block } from '@/types/block';
 const RATE_LIMIT = 500;
 const PERIOD = 60 * 1000; // 1 minute in milliseconds
 const TOKEN_LIMIT = 8192; // OpenAI's token limit for embeddings
-const TOKEN_LIMIT = 8192; // OpenAI's token limit for embeddings
 const limit = pLimit(Math.floor(RATE_LIMIT));
 
 async function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Rough approximation of token count - OpenAI generally uses ~4 chars per token
-function isWithinTokenLimit(text: string): boolean {
-    // Using a conservative 4 characters per token estimate
-    return text.length <= TOKEN_LIMIT * 4;
-}
-
-async function generateEmbeddings(openai: OpenAI, text: string): Promise<number[] | null> {
-    if (!isWithinTokenLimit(text)) {
-        console.warn('Text exceeds token limit, skipping embeddings generation');
-        return null;
-    }
-
-    const embeddingResponse = await openai.embeddings.create({
-        model: 'text-embedding-3-small',
-        input: text,
-        encoding_format: 'float',
-    });
-    return embeddingResponse.data[0].embedding;
 }
 
 // Rough approximation of token count - OpenAI generally uses ~4 chars per token
@@ -101,8 +80,6 @@ export class BlockRepository implements BlockRepositoryInterface {
 
         try {
             const plainText = getPlainText(input.content);
-            const combinedText = `${input.title} ${plainText}`;
-            const embeddings = await generateEmbeddings(openai, combinedText);
             const combinedText = `${input.title} ${plainText}`;
             const embeddings = await generateEmbeddings(openai, combinedText);
 
@@ -223,7 +200,6 @@ export class BlockRepository implements BlockRepositoryInterface {
 
                         await sleep(timePerRequest * index);
 
-                        const embeddings = await generateEmbeddings(this.ensureOpenAI(), plainText);
                         const embeddings = await generateEmbeddings(this.ensureOpenAI(), plainText);
 
                         processedBlocks++;
@@ -540,8 +516,6 @@ export class BlockRepository implements BlockRepositoryInterface {
     ): Promise<Block> {
         try {
             const plainText = getPlainText(updates.content || '');
-            const combinedText = `${updates.title} ${plainText}`;
-            const embeddings = await generateEmbeddings(this.ensureOpenAI(), combinedText);
             const combinedText = `${updates.title} ${plainText}`;
             const embeddings = await generateEmbeddings(this.ensureOpenAI(), combinedText);
 
