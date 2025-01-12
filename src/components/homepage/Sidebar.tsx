@@ -1,12 +1,13 @@
 'use client';
 
-import { ChevronUpIcon, Upload } from 'lucide-react';
+import { ChevronUpIcon, Upload, LogOut } from 'lucide-react';
 import { useBlock } from '@/hooks/useBlock';
 import { useMemo, useState, ChangeEvent } from 'react';
 import SwipeableNote from '@/components/blocks/SwipeableNote';
 import ThemeToggle from '../../components/theme/ThemeToggle';
 import { Block } from '@/types/block';
 import { TabType } from '@/app/page';
+import { signOut, useSession } from 'next-auth/react';
 
 interface SidebarProps {
     setActiveTab: React.Dispatch<React.SetStateAction<TabType>>;
@@ -32,6 +33,7 @@ async function handleLogseqUpload(file: File): Promise<void> {
 }
 
 function Sidebar({ setActiveTab }: SidebarProps) {
+    const { data: session } = useSession();
     const { blocks, addBlock, removeBlock, setActiveBlock } = useBlock();
     const [isRecentExpanded, setIsRecentExpanded] = useState<boolean>(true);
     const [isAllExpanded, setIsAllExpanded] = useState<boolean>(false);
@@ -52,8 +54,7 @@ function Sidebar({ setActiveTab }: SidebarProps) {
             title: '',
             content: '',
             type: 'text',
-            createdAt: now,
-            updatedAt: now,
+            userId: session?.user?.id as string,
         });
 
         setActiveBlock(newBlock.id);
@@ -89,6 +90,10 @@ function Sidebar({ setActiveTab }: SidebarProps) {
                 console.error('Upload failed:', error);
             }
         }
+    };
+
+    const handleSignOut = async () => {
+        await signOut({ redirect: true, callbackUrl: '/auth/signin' });
     };
 
     return (
@@ -177,22 +182,31 @@ function Sidebar({ setActiveTab }: SidebarProps) {
 
                 {/* Bottom bar */}
                 <div className="mt-4 flex-shrink-0">
-                    <div className="flex items-center justify-end space-x-2">
-                        <input
-                            type="file"
-                            id="fileInput"
-                            className="hidden"
-                            onChange={handleFileChange}
-                            accept=".json,.md"
-                        />
+                    <div className="flex items-center justify-between space-x-2">
                         <button
-                            onClick={() => document.getElementById('fileInput')?.click()}
+                            onClick={handleSignOut}
                             className="rounded-md bg-neutral-100 p-4 text-neutral-900 hover:bg-neutral-200 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500"
-                            aria-label="Import file"
+                            aria-label="Sign out"
                         >
-                            <Upload size={16} />
+                            <LogOut size={16} />
                         </button>
-                        <ThemeToggle />
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="file"
+                                id="fileInput"
+                                className="hidden"
+                                onChange={handleFileChange}
+                                accept=".json,.md"
+                            />
+                            <button
+                                onClick={() => document.getElementById('fileInput')?.click()}
+                                className="rounded-md bg-neutral-100 p-4 text-neutral-900 hover:bg-neutral-200 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500"
+                                aria-label="Import file"
+                            >
+                                <Upload size={16} />
+                            </button>
+                            <ThemeToggle />
+                        </div>
                     </div>
                 </div>
             </div>

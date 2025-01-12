@@ -84,27 +84,29 @@ export class BlockRepository implements BlockRepositoryInterface {
             const embeddings = await generateEmbeddings(openai, combinedText);
 
             const query = `
-                CREATE (b:Block {
-                    id: $id,
-                    title: $title,
-                    content: $content,
-                    plainText: $plainText,
-                    embeddings: $embeddings,
-                    type: $type,
-                    createdAt: datetime(),
-                    updatedAt: datetime()
-                })
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .type,
-                    .plainText,
-                    .embeddings,
-                    .createdAt,
-                    .updatedAt
-                } as block
-            `;
+                MATCH (u:User {id: $userId})
+                CREATE (b:Block {
+                    id: $id,
+                    title: $title,
+                    content: $content,
+                    plainText: $plainText,
+                    embeddings: $embeddings,
+                    type: $type,
+                    createdAt: datetime(),
+                    updatedAt: datetime()
+                })
+                CREATE (u)-[:OWNS]->(b)
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .type,
+                    .plainText,
+                    .embeddings,
+                    .createdAt,
+                    .updatedAt
+                } as block
+            `;
 
             const result = await this.neo4j.executeWrite(query, {
                 id: blockId,
@@ -113,6 +115,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                 type: input.type || 'text',
                 plainText,
                 embeddings,
+                userId: input.userId,
             });
 
             if (!result.length) {
@@ -123,15 +126,15 @@ export class BlockRepository implements BlockRepositoryInterface {
 
             // Queue background tasks
             smartLinks
-                .traceBlockLinks(block.id)
+                .traceBlockLinks(block.id, input.userId)
                 .catch((error) => console.error('Failed to compute similarities:', error));
 
             smartLinks
-                .traceTime(block.id, 'CREATE')
+                .traceTime(block.id, input.userId, 'CREATE')
                 .catch((error) => console.error('Failed to save time data:', error));
 
             smartLinks
-                .traceContext(block.id, input.device, input.location)
+                .traceContext(block.id, input.userId, input.device, input.location)
                 .catch((error) => console.error('Failed to trace context:', error));
 
             return {
@@ -215,6 +218,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                                 type: input.type || 'text',
                                 plainText,
                                 embeddings,
+                                userId: input.userId,
                             },
                             blockId,
                         };
@@ -227,28 +231,30 @@ export class BlockRepository implements BlockRepositoryInterface {
                 );
 
                 const query = `
-                    UNWIND $blocks as block
-                    CREATE (b:Block {
-                        id: block.id,
-                        title: block.title,
-                        content: block.content,
-                        plainText: block.plainText,
-                        embeddings: block.embeddings,
-                        type: block.type,
-                        createdAt: datetime(),
-                        updatedAt: datetime()
-                    })
-                    RETURN b {
-                        .id,
-                        .title,
-                        .content,
-                        .type,
-                        .plainText,
-                        .embeddings,
-                        .createdAt,
-                        .updatedAt
-                    } as block
-                `;
+                    MATCH (u:User {id: $userId})
+                    UNWIND $blocks as block
+                    CREATE (b:Block {
+                        id: block.id,
+                        title: block.title,
+                        content: block.content,
+                        plainText: block.plainText,
+                        embeddings: block.embeddings,
+                        type: block.type,
+                        createdAt: datetime(),
+                        updatedAt: datetime()
+                    })
+                    CREATE (u)-[:OWNS]->(b)
+                    RETURN b {
+                        .id,
+                        .title,
+                        .content,
+                        .type,
+                        .plainText,
+                        .embeddings,
+                        .createdAt,
+                        .updatedAt
+                    } as block
+                `;
 
                 const blocksParam = batchParams.map(({ params }) => ({
                     id: params.id,
@@ -257,6 +263,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                     type: params.type,
                     plainText: params.plainText,
                     embeddings: params.embeddings,
+                    userId: params.userId,
                 }));
 
                 const result = await this.neo4j.executeWrite(query, { blocks: blocksParam });
@@ -267,7 +274,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                 batchParams.forEach(({ blockId }, index) => {
                     setTimeout(() => {
                         this.ensureSmartLinkRepository()
-                            .traceBlockLinks(blockId)
+                            .traceBlockLinks(blockId, inputs[index].userId)
                             .catch((error) =>
                                 console.error('Failed to compute similarities:', error)
                             );
@@ -318,125 +325,71 @@ export class BlockRepository implements BlockRepositoryInterface {
         }
     }
 
-    async searchBlocks(query: string, threshold = 0.25): Promise<BlockSearchResult> {
+    async searchBlocks(
+        query: string,
+        userId: string,
+        threshold = 0.25
+    ): Promise<BlockSearchResult> {
         const openai = this.ensureOpenAI();
 
-        try {
-            const lowercaseQuery = query.toLowerCase().trim();
-
-            // First get exact matches (case-insensitive)
-            const exactMatches = await this.neo4j.executeQuery(
-                `
-                MATCH (b:Block)
-                WITH b, 
-                    toLower(b.title) AS lowerTitle,
-                    toLower(b.plainText) AS lowerContent,
-                    $query AS searchQuery
-                WHERE lowerTitle CONTAINS searchQuery OR lowerContent CONTAINS searchQuery
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .plainText,
-                    .type,
-                    .createdAt,
-                    .updatedAt,
-                    matchType: CASE 
-                        WHEN lowerTitle CONTAINS searchQuery THEN 'title'
-                        WHEN lowerContent CONTAINS searchQuery THEN 'content'
-                    END
-                } AS block
-            `,
-                { query: lowercaseQuery }
-            );
-
-            // Separate exact matches into title and content arrays
-            const titleMatches = exactMatches
-                .filter((row) => row.block.matchType === 'title')
-                .map((row) => ({
-                    ...row.block,
-                    similarity: 1,
-                }));
-
-            const contentMatches = exactMatches
-                .filter((row) => row.block.matchType === 'content')
-                .map((row) => ({
-                    ...row.block,
-                    similarity: 1,
-                }));
-
-            // Get embedding-based matches
-            const embeddingResponse = await openai.embeddings.create({
-                model: 'text-embedding-3-small',
-                input: query,
-                encoding_format: 'float',
-            });
-            const queryEmbedding = embeddingResponse.data[0].embedding;
-
-            // Exclude IDs that we already found in exact matches
-            const exactMatchIds = exactMatches.map((row) => row.block.id);
-            const similarityMatches = await this.neo4j.executeQuery(
-                `
-                    MATCH (b:Block)
-                    WHERE NOT b.id IN $exactMatchIds
-                    AND b.embeddings IS NOT NULL
-                    AND size(b.embeddings) > 0 
-                    WITH b, gds.similarity.cosine(b.embeddings, $queryEmbedding) AS similarity
-                    WHERE similarity > $threshold
-                    RETURN b {
-                        .id,
-                        .title,
-                        .content,
-                        .plainText,
-                        .type,
-                        .createdAt,
-                        .updatedAt
-                    } AS block, similarity
-                    ORDER BY similarity DESC
-                    LIMIT 10
-                `,
-                {
-                    queryEmbedding,
-                    threshold,
-                    exactMatchIds,
-                }
-            );
-
-            const embeddingMatches = similarityMatches.map((row) => ({
-                ...row.block,
-                similarity: row.similarity,
-            }));
-
-            // Return array of arrays: [titleMatches, contentMatches, embeddingMatches]
-            return {
-                titleMatches: titleMatches,
-                contentMatches: contentMatches,
-                similarityMatches: embeddingMatches,
-            };
-        } catch (error) {
-            console.error('Failed to perform search:', error);
-            throw new Error('Search failed. Please try again.');
+        const embeddings = await generateEmbeddings(openai, query);
+        if (!embeddings) {
+            throw new Error('Failed to generate embeddings for search query');
         }
+
+        const cypher = `
+            MATCH (u:User {id: $userId})-[:OWNS]->(b:Block)
+            WITH b, gds.similarity.cosine(b.embeddings, $embeddings) AS score
+            WHERE score >= $threshold
+            RETURN b {
+                .id,
+                .title,
+                .content,
+                .type,
+                .plainText,
+                .createdAt,
+                .updatedAt
+            } as block,
+            score
+            ORDER BY score DESC
+        `;
+
+        const result = await this.neo4j.executeQuery(cypher, {
+            embeddings,
+            threshold,
+            userId,
+        });
+
+        return {
+            titleMatches: [],
+            contentMatches: [],
+            similarityMatches: result.map((row) => ({
+                ...row.block,
+                createdAt: new Date(row.block.createdAt),
+                updatedAt: new Date(row.block.updatedAt),
+                similarity: row.score,
+            })),
+        };
     }
 
-    async getBlocks(includeEmbeddings = false): Promise<Block[]> {
+    async getBlocks(userId: string, includeEmbeddings = false): Promise<Block[]> {
         try {
             const query = `
-                MATCH (b:Block)
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .plainText,
-                    .type,
-                    .createdAt,
-                    .updatedAt
-                    ${includeEmbeddings ? ', .embeddings' : ''}
-                } as block
-                ORDER BY b.updatedAt DESC
-            `;
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block)
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .plainText,
+                    .type,
+                    .createdAt,
+                    .updatedAt
+                    ${includeEmbeddings ? ', .embeddings' : ''}
+                } as block
+                ORDER BY b.updatedAt DESC
+            `;
 
-            const result = await this.neo4j.executeQuery(query);
+            const result = await this.neo4j.executeQuery(query, { userId });
 
             return result.map((record) => ({
                 id: record.block.id,
@@ -456,25 +409,26 @@ export class BlockRepository implements BlockRepositoryInterface {
 
     async getBlock(
         id: string,
+        userId: string,
         device?: string,
         location?: GeoLocation,
         includeEmbeddings = false
     ): Promise<Block> {
         try {
             const query = `
-                MATCH (b:Block {id: $id})
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .type,
-                    .createdAt,
-                    .updatedAt
-                    ${includeEmbeddings ? ', .embeddings' : ''}
-                } as block
-            `;
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block {id: $id})
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .type,
+                    .createdAt,
+                    .updatedAt
+                    ${includeEmbeddings ? ', .embeddings' : ''}
+                } as block
+            `;
 
-            const result = await this.neo4j.executeQuery(query, { id });
+            const result = await this.neo4j.executeQuery(query, { id, userId });
 
             if (!result.length) {
                 throw new Error(`Block with id ${id} not found`);
@@ -484,12 +438,12 @@ export class BlockRepository implements BlockRepositoryInterface {
 
             // Track view in background
             this.ensureSmartLinkRepository()
-                .traceTime(id, 'VIEW')
+                .traceTime(block.id, userId, 'VIEW')
                 .catch((error) => console.error('Failed to save time data:', error));
 
             if (device || location) {
                 this.ensureSmartLinkRepository()
-                    .traceContext(id, device, location)
+                    .traceContext(id, userId, device, location)
                     .catch((error) => console.error('Failed to trace context:', error));
             }
 
@@ -510,6 +464,7 @@ export class BlockRepository implements BlockRepositoryInterface {
 
     async updateBlock(
         id: string,
+        userId: string,
         updates: BlockUpdate,
         device?: string,
         location?: GeoLocation
@@ -520,21 +475,21 @@ export class BlockRepository implements BlockRepositoryInterface {
             const embeddings = await generateEmbeddings(this.ensureOpenAI(), combinedText);
 
             const query = `
-                MATCH (b:Block {id: $id})
-                SET b += $updates,
-                    b.plainText = $plainText,
-                    b.embeddings = $embeddings,
-                    b.updatedAt = datetime()
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .plainText,
-                    .type,
-                    .createdAt,
-                    .updatedAt
-                } as block
-            `;
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block {id: $id})
+                SET b += $updates,
+                    b.plainText = $plainText,
+                    b.embeddings = $embeddings,
+                    b.updatedAt = datetime()
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .plainText,
+                    .type,
+                    .createdAt,
+                    .updatedAt
+                } as block
+            `;
 
             const result = await this.neo4j.executeWrite(query, {
                 id,
@@ -545,6 +500,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                 },
                 plainText,
                 embeddings,
+                userId,
             });
 
             if (!result.length) {
@@ -555,16 +511,16 @@ export class BlockRepository implements BlockRepositoryInterface {
 
             // Queue background tasks
             this.ensureSmartLinkRepository()
-                .traceBlockLinks(id)
+                .traceBlockLinks(id, userId)
                 .catch((error) => console.error('Failed to compute similarities:', error));
 
             this.ensureSmartLinkRepository()
-                .traceTime(id, 'UPDATE')
+                .traceTime(id, userId, 'UPDATE')
                 .catch((error) => console.error('Failed to save time data:', error));
 
             if (device || location) {
                 this.ensureSmartLinkRepository()
-                    .traceContext(id, device, location)
+                    .traceContext(id, userId, device, location)
                     .catch((error) => console.error('Failed to trace context:', error));
             }
 
@@ -586,9 +542,9 @@ export class BlockRepository implements BlockRepositoryInterface {
     async deleteBlock(id: string): Promise<void> {
         try {
             const query = `
-                MATCH (b:Block {id: $id})
-                DETACH DELETE b
-            `;
+                MATCH (u:User)-[:OWNS]->(b:Block {id: $id})
+                DETACH DELETE b
+            `;
 
             await this.neo4j.executeWrite(query, { id });
         } catch (error) {

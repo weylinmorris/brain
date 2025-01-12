@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db/client';
 import { Block } from '@/types/block';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -9,11 +11,16 @@ export async function GET(
     context: RouteParams
 ): Promise<NextResponse<Block[] | { error: string; details?: string }>> {
     const { id } = await context.params;
-
     try {
         await db.ensureConnection();
 
-        const blocks = await db.smartLinks.getRelatedBlockRecommendations(id);
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        const userId = session.user.id;
+
+        const blocks = await db.smartLinks.getRelatedBlockRecommendations(id, userId);
 
         return NextResponse.json(blocks || []);
     } catch (error) {

@@ -50,8 +50,8 @@ function AnswerDisplay({ answer, sources, onSourceClick, query }: AnswerDisplayP
         return parts.map((part, index) => {
             // Check if this part is a citation
             if (part.match(/^\[[^\]]+\]$/)) {
-                const title = part.slice(1, -1); // Remove brackets
-                const source = sources.find((s) => s.title === title);
+                const title = part.slice(1, -1).trim(); // Remove brackets and trim whitespace
+                const source = sources?.find((s) => s.title.trim() === title);
 
                 if (source) {
                     return (
@@ -111,10 +111,6 @@ function Search() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    useEffect(() => {
-        console.log('searchResults', searchResults);
-    }, [searchResults]);
 
     const handleSearch = async () => {
         if (!query.trim()) return;

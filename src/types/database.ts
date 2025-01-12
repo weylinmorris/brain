@@ -46,12 +46,14 @@ export interface BlockInput {
     type?: 'text' | 'image' | 'code' | 'math';
     device?: string;
     location?: GeoLocation;
+    userId: string;
 }
 
 export interface BlockUpdate {
     title?: string;
     content?: string;
     type?: 'text' | 'image' | 'code' | 'math';
+    userId?: string;
 }
 
 export interface BlockSearchResult {
@@ -63,16 +65,18 @@ export interface BlockSearchResult {
 export interface BlockRepositoryInterface {
     createBlock(input: BlockInput): Promise<Block>;
     createManyBlocks(inputs: BlockInput[]): Promise<Block[]>;
-    searchBlocks(query: string, threshold?: number): Promise<BlockSearchResult>;
-    getBlocks(includeEmbeddings?: boolean): Promise<Block[]>;
+    searchBlocks(query: string, userId: string, threshold?: number): Promise<BlockSearchResult>;
+    getBlocks(userId: string, includeEmbeddings?: boolean): Promise<Block[]>;
     getBlock(
         id: string,
+        userId: string,
         device?: string,
         location?: GeoLocation,
         includeEmbeddings?: boolean
     ): Promise<Block>;
     updateBlock(
         id: string,
+        userId: string,
         updates: BlockUpdate,
         device?: string,
         location?: GeoLocation
@@ -85,16 +89,22 @@ export interface BlockRepositoryInterface {
 export interface GeoLocation {
     lat: number;
     lng: number;
+    userId?: string;
 }
 
 export interface TimeMetadata {
-    hour: number;
-    minute: number;
-    dayOfWeek: number;
-    daySegment: DaySegment;
-    season: Season;
-    isWeekend: boolean;
-    isWorkHours: boolean;
+    commonHours: number[];
+    commonDays: number[];
+    commonSegments: {
+        EARLY_MORNING: number;
+        MORNING: number;
+        MIDDAY: number;
+        AFTERNOON: number;
+        EVENING: number;
+        NIGHT: number;
+    };
+    totalInteractions: number;
+    lastInteraction: Date;
 }
 
 export type DaySegment = 'EARLY_MORNING' | 'MORNING' | 'MIDDAY' | 'AFTERNOON' | 'EVENING' | 'NIGHT';
@@ -106,11 +116,13 @@ export interface ActivityMetrics {
     titleLengthDelta: number;
     contentLengthDelta: number;
     totalLength: number;
+    userId?: string;
 }
 
 export interface ActivityPatterns {
     isExpansion: boolean;
     isRefinement: boolean;
+    userId?: string;
 }
 
 export interface BlockActivity {
@@ -124,18 +136,37 @@ export interface BlockActivity {
         lastEditTimestamp: Date;
         editFrequency: number;
         averageEditSize: number;
+        userId?: string;
     };
 }
 
 export interface SmartLinkRepositoryInterface {
     neo4j: Neo4jClientInterface;
     blockRepository: BlockRepositoryInterface;
-    traceBlockLinks(blockId: string): Promise<void>;
-    traceTime(blockId: string, action: ActionType): Promise<TimeMetadata>;
-    traceActivity(updatedBlock: Block, originalBlock: Block): Promise<BlockActivity>;
-    traceContext(blockId: string, device?: string, location?: GeoLocation): Promise<void>;
-    tracePreviousBlocks(blockId: string, previousBlockId: string): Promise<void>;
-    traceUserFeedback(blockId: string, recommendation: string, feedback: boolean): Promise<void>;
-    getHomeFeedRecommendations(device?: string, location?: GeoLocation): Promise<Block[]>;
-    getRelatedBlockRecommendations(blockId: string): Promise<Block[]>;
+    traceBlockLinks(blockId: string, userId: string): Promise<void>;
+    traceTime(blockId: string, userId: string, action: ActionType): Promise<TimeMetadata>;
+    traceActivity(
+        updatedBlock: Block,
+        originalBlock: Block,
+        userId: string
+    ): Promise<BlockActivity>;
+    traceContext(
+        blockId: string,
+        userId: string,
+        device?: string,
+        location?: GeoLocation
+    ): Promise<void>;
+    tracePreviousBlocks(blockId: string, userId: string, previousBlockId: string): Promise<void>;
+    traceUserFeedback(
+        blockId: string,
+        userId: string,
+        recommendation: string,
+        feedback: boolean
+    ): Promise<void>;
+    getHomeFeedRecommendations(
+        userId: string,
+        device?: string,
+        location?: GeoLocation
+    ): Promise<Block[]>;
+    getRelatedBlockRecommendations(blockId: string, userId: string): Promise<Block[]>;
 }

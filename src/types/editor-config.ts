@@ -1,14 +1,15 @@
 import { EditorThemeClasses } from 'lexical';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { ListItemNode, ListNode } from '@lexical/list';
-import { CodeNode } from '@lexical/code';
+import { CodeNode, CodeHighlightNode } from '@lexical/code';
 
 export type EditorNodes =
     | typeof HeadingNode
     | typeof QuoteNode
     | typeof ListItemNode
     | typeof ListNode
-    | typeof CodeNode;
+    | typeof CodeNode
+    | typeof CodeHighlightNode;
 
 export interface EditorConfig {
     namespace: string;

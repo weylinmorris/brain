@@ -21,12 +21,24 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
         this.blockRepository = blockRepository;
     }
 
-    async traceBlockLinks(blockId: string): Promise<void> {
+    async traceBlockLinks(blockId: string, userId: string): Promise<void> {
+        console.log('blockId', blockId);
+        console.log('userId', userId);
+
         try {
-            const block = await this.blockRepository.getBlock(blockId, undefined, undefined, true);
+            const block = await this.blockRepository.getBlock(
+                blockId,
+                userId,
+                undefined,
+                undefined,
+                true
+            );
+
             if (!block) throw new Error('Block not found');
 
-            const blocks = await this.blockRepository.getBlocks(true);
+            const blocks = await this.blockRepository.getBlocks(userId, true);
+            if (!blocks?.length) return; // No blocks to compare against
+
             for (const otherBlock of blocks) {
                 if (otherBlock.id === blockId) continue;
 
@@ -52,18 +64,18 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
                 }
 
                 if (relationshipType) {
-                    await this.neo4j.executeWrite(
-                        `
-                        MATCH (a:Block {id: $idA}), (b:Block {id: $idB})
-                        MERGE (a)-[r:${relationshipType}]->(b)
-                        SET r.similarity = $similarity, r.similarityCheckedAt = datetime()
-                    `,
-                        {
-                            idA: blockId,
-                            idB: otherBlock.id,
-                            similarity,
-                        }
-                    );
+                    const query = [
+                        'MATCH (u:User {id: $userId})-[:OWNS]->(a:Block {id: $idA}), (u)-[:OWNS]->(b:Block {id: $idB})',
+                        `MERGE (a)-[r:${relationshipType}]->(b)`,
+                        'SET r.similarity = $similarity, r.similarityCheckedAt = datetime()',
+                    ].join('\n');
+
+                    await this.neo4j.executeWrite(query, {
+                        userId,
+                        idA: blockId,
+                        idB: otherBlock.id,
+                        similarity,
+                    });
                 }
 
                 await new Promise((resolve) => setTimeout(resolve, 100)); // Slow down to avoid rate limits
@@ -74,80 +86,105 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
         }
     }
 
-    async traceTime(blockId: string, actionType: ActionType = 'VIEW'): Promise<TimeMetadata> {
-        try {
-            const now = new Date();
-            const metadata = generateTimeMetadata(now);
+    async traceTime(
+        blockId: string,
+        userId: string,
+        actionType: ActionType = 'VIEW'
+    ): Promise<TimeMetadata> {
+        // try {
+        //     const now = new Date();
+        //     const metadata = generateTimeMetadata(now);
 
-            const query = `
-                MATCH (b:Block {id: $blockId})
-                
-                // Create a new time interaction node
-                CREATE (t:TimeInteraction {
-                    id: $interactionId,
-                    timestamp: datetime(),
-                    hour: $hour,
-                    minute: $minute,
-                    dayOfWeek: $dayOfWeek,
-                    daySegment: $daySegment,
-                    season: $season,
-                    isWeekend: $isWeekend,
-                    isWorkHours: $isWorkHours,
-                    actionType: $actionType
-                })
-                
-                // Create relationship with context
-                CREATE (b)-[r:TIME_INTERACTION]->(t)
-                
-                // Update running averages on the block
-                WITH b, t
-                OPTIONAL MATCH (b)-[:TIME_INTERACTION]->(prev:TimeInteraction)
-                WITH b, t, collect(prev) as prevInteractions
-                
-                SET b += {
-                    commonHours: [hour in range(0,23) | size([p in prevInteractions WHERE p.hour = hour])],
-                    commonDays: [day in range(0,6) | size([p in prevInteractions WHERE p.dayOfWeek = day])],
-                    segmentEarlyMorning: size([p in prevInteractions WHERE p.daySegment = 'EARLY_MORNING']),
-                    segmentMorning: size([p in prevInteractions WHERE p.daySegment = 'MORNING']),
-                    segmentMidday: size([p in prevInteractions WHERE p.daySegment = 'MIDDAY']),
-                    segmentAfternoon: size([p in prevInteractions WHERE p.daySegment = 'AFTERNOON']),
-                    segmentEvening: size([p in prevInteractions WHERE p.daySegment = 'EVENING']),
-                    segmentNight: size([p in prevInteractions WHERE p.daySegment = 'NIGHT']),
-                    totalInteractions: size(prevInteractions) + 1,
-                    lastInteraction: t.timestamp
-                }
-                
-                RETURN {
-                    commonHours: b.commonHours,
-                    commonDays: b.commonDays,
-                    commonSegments: {
-                        EARLY_MORNING: b.segmentEarlyMorning,
-                        MORNING: b.segmentMorning,
-                        MIDDAY: b.segmentMidday,
-                        AFTERNOON: b.segmentAfternoon,
-                        EVENING: b.segmentEvening,
-                        NIGHT: b.segmentNight
-                    },
-                    totalInteractions: b.totalInteractions,
-                    lastInteraction: b.lastInteraction
-                } as metadata
-            `;
+        //     const query = `
+        //         MATCH (u:User {id: $userId})-[:OWNS]->(b:Block {id: $blockId})
 
-            const result = await this.neo4j.executeWrite(query, {
-                blockId,
-                interactionId: uuidv4(),
-                actionType,
-                ...metadata,
-            });
+        //         // Create a new time interaction node
+        //         CREATE (t:TimeInteraction {
+        //             id: $interactionId,
+        //             timestamp: datetime(),
+        //             hour: datetime().hour,
+        //             dayOfWeek: datetime().dayOfWeek,
+        //             actionType: $actionType
+        //         })
 
-            return result[0].metadata;
-        } catch (error) {
-            console.error('Failed to trace time metadata:', error);
-            throw new Error('Failed to trace time metadata');
-        }
+        //         // Create relationship with context
+        //         CREATE (b)-[r:TIME_INTERACTION]->(t)
+
+        //         // Update running averages on the block
+        //         WITH b, t
+        //         OPTIONAL MATCH (b)-[:TIME_INTERACTION]->(prev:TimeInteraction)
+        //         WITH b, t, collect(prev) as prevInteractions
+
+        //         SET b += {
+        //             commonHours: $commonHours,
+        //             commonDays: $commonDays,
+        //             segmentEarlyMorning: $commonSegments.EARLY_MORNING,
+        //             segmentMorning: $commonSegments.MORNING,
+        //             segmentMidday: $commonSegments.MIDDAY,
+        //             segmentAfternoon: $commonSegments.AFTERNOON,
+        //             segmentEvening: $commonSegments.EVENING,
+        //             segmentNight: $commonSegments.NIGHT,
+        //             totalInteractions: $totalInteractions,
+        //             lastInteraction: datetime()
+        //         }
+
+        //         RETURN {
+        //             commonHours: b.commonHours,
+        //             commonDays: b.commonDays,
+        //             segmentEarlyMorning: b.segmentEarlyMorning,
+        //             segmentMorning: b.segmentMorning,
+        //             segmentMidday: b.segmentMidday,
+        //             segmentAfternoon: b.segmentAfternoon,
+        //             segmentEvening: b.segmentEvening,
+        //             segmentNight: b.segmentNight,
+        //             totalInteractions: b.totalInteractions,
+        //             lastInteraction: b.lastInteraction
+        //         } as timeMetadata
+        //     `;
+
+        //     const result = await this.neo4j.executeWrite(query, {
+        //         blockId,
+        //         interactionId: uuidv4(),
+        //         actionType,
+        //         userId,
+        //         commonHours: metadata.commonHours,
+        //         commonDays: metadata.commonDays,
+        //         commonSegments: metadata.commonSegments,
+        //         totalInteractions: metadata.totalInteractions,
+        //     });
+
+        //     if (!result?.[0]?.timeMetadata) {
+        //         throw new Error('Failed to create time metadata');
+        //     }
+
+        //     const timeMetadata = result[0].timeMetadata;
+        //     return {
+        //         commonHours: timeMetadata.commonHours,
+        //         commonDays: timeMetadata.commonDays,
+        //         commonSegments: {
+        //             EARLY_MORNING: timeMetadata.segmentEarlyMorning,
+        //             MORNING: timeMetadata.segmentMorning,
+        //             MIDDAY: timeMetadata.segmentMidday,
+        //             AFTERNOON: timeMetadata.segmentAfternoon,
+        //             EVENING: timeMetadata.segmentEvening,
+        //             NIGHT: timeMetadata.segmentNight,
+        //         },
+        //         totalInteractions: timeMetadata.totalInteractions,
+        //         lastInteraction: new Date(timeMetadata.lastInteraction),
+        //     };
+        // } catch (error) {
+        //     console.error('Failed to trace time metadata:', error);
+        //     throw new Error('Failed to trace time metadata');
+        // }
+
+        return Promise.resolve({} as TimeMetadata);
     }
 
-    async traceActivity(updatedBlock: Block, originalBlock: Block): Promise<BlockActivity> {
+    async traceActivity(
+        updatedBlock: Block,
+        originalBlock: Block,
+        userId: string
+    ): Promise<BlockActivity> {
         try {
             // Analyze content changes
             const originalText = getPlainText(originalBlock.content);
@@ -189,7 +226,7 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
             }
 
             const query = `
-                MATCH (b:Block {id: $blockId})
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block {id: $blockId})
                 
                 CREATE (a:Activity {
                     id: $activityId,
@@ -206,7 +243,7 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
                 
                 // Update block's activity summary
                 WITH b, a
-                OPTIONAL MATCH (b)-[:ACTIVITY]->(prevActivity:Activity)
+                OPTIONAL MATCH (u:User {id: $userId})-[:OWNS]->(b)-[:ACTIVITY]->(prevActivity:Activity)
                 WITH b, a, collect(prevActivity) as previousActivities
                 
                 WITH b, a, previousActivities,
@@ -253,6 +290,7 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
             const result = await this.neo4j.executeWrite(query, {
                 blockId: updatedBlock.id,
                 activityId: uuidv4(),
+                userId,
                 changeTypes: changes.type,
                 metrics: changes.metrics,
                 patterns: changes.patterns,
@@ -274,6 +312,7 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
 
     async traceContext(
         blockId: string,
+        userId: string,
         deviceType = 'unknown',
         location?: GeoLocation
     ): Promise<void> {
@@ -290,7 +329,7 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
                 !isNaN(longitude);
 
             const query = `
-                MATCH (b:Block {id: $blockId})
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block {id: $blockId})
                 CREATE (c:Context {
                     id: $contextId,
                     timestamp: datetime(),
@@ -304,7 +343,8 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
                 blockId,
                 contextId: uuidv4(),
                 deviceType,
-                ...(hasValidCoordinates && { latitude, longitude }),
+                userId,
+                ...(hasValidCoordinates ? { latitude, longitude } : {}),
             });
         } catch (error) {
             console.error('Failed to trace context:', error);
@@ -312,17 +352,22 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
         }
     }
 
-    async tracePreviousBlocks(blockId: string, previousBlockId: string): Promise<void> {
+    async tracePreviousBlocks(
+        blockId: string,
+        userId: string,
+        previousBlockId: string
+    ): Promise<void> {
         try {
             await this.neo4j.executeWrite(
                 `
-                MATCH (current:Block {id: $blockId}), (previous:Block {id: $previousBlockId})
+                MATCH (u:User {id: $userId})-[:OWNS]->(current:Block {id: $blockId}), (u)-[:OWNS]->(previous:Block {id: $previousBlockId})
                 MERGE (current)-[r:PREVIOUS]->(previous)
                 SET r.timestamp = datetime()
             `,
                 {
                     blockId,
                     previousBlockId,
+                    userId,
                 }
             );
         } catch (error) {
@@ -333,26 +378,28 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
 
     async traceUserFeedback(
         blockId: string,
+        userId: string,
         recommendation: string,
         feedback: boolean
     ): Promise<void> {
         try {
             await this.neo4j.executeWrite(
                 `
-                MATCH (b:Block {id: $blockId})
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block {id: $blockId})
                 CREATE (f:Feedback {
                     id: $feedbackId,
                     timestamp: datetime(),
                     recommendationType: $recommendation,
                     wasHelpful: $feedback
                 })
-                CREATE (b)-[:FEEDBACK]->(f)
+                CREATE (u:User {id: $userId})-[:OWNS]->(b:Block {id: $blockId})-[:FEEDBACK]->(f)
             `,
                 {
                     blockId,
                     feedbackId: uuidv4(),
                     recommendation,
                     feedback,
+                    userId,
                 }
             );
         } catch (error) {
@@ -361,10 +408,14 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
         }
     }
 
-    async getHomeFeedRecommendations(device?: string, location?: GeoLocation): Promise<Block[]> {
+    async getHomeFeedRecommendations(
+        userId: string,
+        device?: string,
+        location?: GeoLocation
+    ): Promise<Block[]> {
         try {
             const query = `
-                MATCH (b:Block)
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block)
                 WHERE b.totalInteractions > 0
                 WITH b
                 ORDER BY b.lastInteraction DESC
@@ -379,7 +430,7 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
                 } as block
             `;
 
-            const result = await this.neo4j.executeQuery(query);
+            const result = await this.neo4j.executeQuery(query, { userId });
 
             return result.map((record) => ({
                 ...record.block,
@@ -392,10 +443,10 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
         }
     }
 
-    async getRelatedBlockRecommendations(blockId: string): Promise<Block[]> {
+    async getRelatedBlockRecommendations(blockId: string, userId: string): Promise<Block[]> {
         try {
             const query = `
-                MATCH (b:Block {id: $blockId})<-[r:LINKED|SIMILAR]->(related:Block)
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block {id: $blockId})<-[r:LINKED|SIMILAR]->(related:Block)
                 RETURN related {
                     .id,
                     .title,
@@ -410,12 +461,13 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
                 LIMIT 5
             `;
 
-            const result = await this.neo4j.executeQuery(query, { blockId });
+            const result = await this.neo4j.executeQuery(query, { blockId, userId });
 
             return result.map((record) => ({
                 ...record.block,
                 createdAt: new Date(record.block.createdAt),
                 updatedAt: new Date(record.block.updatedAt),
+                similarity: record.similarity,
             }));
         } catch (error) {
             console.error('Failed to get related block recommendations:', error);

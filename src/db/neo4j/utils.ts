@@ -50,11 +50,27 @@ export function cosineSimilarity(embeddingA: number[], embeddingB: number[]): nu
 
 export function generateTimeMetadata(date: Date): TimeMetadata {
     const hour = date.getHours();
-    const minute = date.getMinutes();
     const dayOfWeek = date.getDay(); // 0-6, 0 is Sunday
-    const month = date.getMonth() + 1;
 
-    const daySegment = Object.keys(SEGMENTS).find((segment) => {
+    // Initialize arrays for common hours and days
+    const commonHours = Array(24).fill(0);
+    commonHours[hour] = 1;
+
+    const commonDays = Array(7).fill(0);
+    commonDays[dayOfWeek] = 1;
+
+    // Initialize segments with 0 counts
+    const commonSegments = {
+        EARLY_MORNING: 0,
+        MORNING: 0,
+        MIDDAY: 0,
+        AFTERNOON: 0,
+        EVENING: 0,
+        NIGHT: 0,
+    };
+
+    // Determine current segment and set its count to 1
+    const currentSegment = Object.keys(SEGMENTS).find((segment) => {
         const { start, end } = SEGMENTS[segment];
         if (end < start) {
             // Handles overnight segments
@@ -63,19 +79,14 @@ export function generateTimeMetadata(date: Date): TimeMetadata {
         return hour >= start && hour <= end;
     }) as DaySegment;
 
-    const season = Object.keys(SEASONS).find((s) => SEASONS[s].includes(month)) as Season;
-
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const isWorkHours = hour >= 9 && hour <= 17 && !isWeekend;
+    commonSegments[currentSegment] = 1;
 
     return {
-        hour,
-        minute,
-        dayOfWeek,
-        daySegment,
-        season,
-        isWeekend,
-        isWorkHours,
+        commonHours,
+        commonDays,
+        commonSegments,
+        totalInteractions: 1,
+        lastInteraction: date,
     };
 }
 

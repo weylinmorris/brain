@@ -3,6 +3,8 @@ import { BlockContext } from '@/context/BlockContext';
 import { Block } from '@/types/block';
 import { fetchRecommendedBlocks, createBlock, updateBlock, deleteBlock } from '@/lib/api';
 import { useToast } from '@/context/ToastContext';
+import { BlockInput } from '@/types/database';
+
 export function useBlock() {
     const { addToast } = useToast();
     const context = useContext(BlockContext);
@@ -13,7 +15,7 @@ export function useBlock() {
     const { state, dispatch } = context;
 
     const addBlock = useCallback(
-        async (block: Omit<Block, 'id'>) => {
+        async (block: BlockInput) => {
             try {
                 dispatch({ type: 'START_LOADING' });
                 const newBlock = await createBlock(block);

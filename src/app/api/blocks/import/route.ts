@@ -2,6 +2,8 @@ import { db } from '@/db/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { BlockInput } from '@/types/database';
 import { Block } from '@/types/block';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 interface LogseqBlock {
     id: string;
@@ -154,7 +156,7 @@ function convertLogseqToLexical(
     return nodes;
 }
 
-function transformLogseqBlocks(logseqData: LogseqData): BlockInput[] {
+function transformLogseqBlocks(logseqData: LogseqData, userId: string): BlockInput[] {
     const blocks: BlockInput[] = [];
     const journalEntries: LogseqBlock[] = [];
     const regularPages: LogseqBlock[] = []; // First, separate journal entries from regular pages
@@ -198,6 +200,7 @@ function transformLogseqBlocks(logseqData: LogseqData): BlockInput[] {
             title: block['page-name'] || '',
             content: JSON.stringify(content),
             type: 'text',
+            userId: userId,
         };
 
         blocks.push(blockData);
@@ -258,6 +261,7 @@ function transformLogseqBlocks(logseqData: LogseqData): BlockInput[] {
             title: 'Journal',
             content: JSON.stringify(journalContent),
             type: 'text',
+            userId: userId,
         });
     } // Process regular pages
 
@@ -266,11 +270,11 @@ function transformLogseqBlocks(logseqData: LogseqData): BlockInput[] {
     return blocks;
 }
 
-async function importFromLogseq(fileContent: string): Promise<Block[]> {
+async function importFromLogseq(fileContent: string, userId: string): Promise<Block[]> {
     try {
         // Parse the JSON content
         const logseqData = JSON.parse(fileContent) as LogseqData; // Convert Logseq blocks to our format
-        const blocks = transformLogseqBlocks(logseqData); // Create all blocks in the database
+        const blocks = transformLogseqBlocks(logseqData, userId); // Create all blocks in the database
         const createdBlocks = await db.blocks.createManyBlocks(blocks);
         return createdBlocks;
     } catch (error) {
@@ -289,6 +293,12 @@ export async function POST(
     request: NextRequest
 ): Promise<NextResponse<ImportResponse | { error: string; details?: string }>> {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        const userId = session.user.id;
+
         await db.ensureConnection(); // Parse the form data from the request
 
         const formData = await request.formData();
@@ -300,7 +310,7 @@ export async function POST(
 
         const fileContent = await file.text();
 
-        const importedBlocks = await importFromLogseq(fileContent);
+        const importedBlocks = await importFromLogseq(fileContent, userId);
 
         return NextResponse.json({
             success: true,

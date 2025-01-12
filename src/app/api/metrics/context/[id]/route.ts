@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db/client';
 import { GeoLocation } from '@/types/database';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -19,7 +21,13 @@ export async function POST(
         const body = (await request.json()) as ContextRequest;
         const { id } = await context.params;
 
-        await db.smartLinks.traceContext(id, body.device, body.location);
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        const userId = session.user.id;
+
+        await db.smartLinks.traceContext(id, userId, body.device, body.location);
 
         return NextResponse.json({}, { status: 200 });
     } catch (error) {

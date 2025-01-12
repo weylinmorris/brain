@@ -4,6 +4,8 @@ import { classifyQuery, generateAnswer } from '../../../../utils/aiUtils';
 import { Block } from '@/types/block';
 import { BlockSource } from '@/types/ai';
 import { BlockSearchResult } from '@/types/database';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../auth/[...nextauth]/route';
 
 type QueryType = 'question' | 'search';
 
@@ -30,6 +32,12 @@ export async function GET(
     try {
         await db.ensureConnection();
 
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        const userId = session.user.id;
+
         // get query from the ?query= parameter
         const { searchParams } = new URL(request.url);
         const query = searchParams.get('query');
@@ -41,7 +49,7 @@ export async function GET(
         // Classify the query
         const queryType = (await classifyQuery(query)) as QueryType;
 
-        const blocks = await db.blocks.searchBlocks(query, 0.25);
+        const blocks = await db.blocks.searchBlocks(query, userId, 0.25);
 
         // Flatten the blocks object
         const flattenedBlocks: Block[] = [

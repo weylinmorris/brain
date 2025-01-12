@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db/client';
 import { BlockInput } from '@/types/database';
 import { Block } from '@/types/block';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export async function GET(
     request: NextRequest
@@ -9,7 +11,13 @@ export async function GET(
     try {
         await db.ensureConnection();
 
-        const blocks = await db.blocks.getBlocks();
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        const userId = session.user.id;
+
+        const blocks = await db.blocks.getBlocks(userId);
 
         return NextResponse.json(blocks || []);
     } catch (error) {
@@ -61,8 +69,15 @@ export async function POST(
 
         const body = (await request.json()) as CreateBlockRequest;
 
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        const userId = session.user.id;
+
         // Ensure required fields with defaults
         const blockData: BlockInput = {
+            userId: userId,
             title: body.title ?? '',
             content: body.content ?? '',
             type: body.type ?? 'text',

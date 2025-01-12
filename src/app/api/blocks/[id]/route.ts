@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db/client';
 import { BlockUpdate, GeoLocation } from '@/types/database';
 import { Block } from '@/types/block';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -10,11 +12,16 @@ export async function GET(
     context: RouteParams
 ): Promise<NextResponse<Block | { error: string; details?: string }>> {
     const { id } = await context.params;
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
 
     try {
         await db.ensureConnection();
 
-        const block = await db.blocks.getBlock(id);
+        const block = await db.blocks.getBlock(id, userId);
 
         if (!block) {
             return NextResponse.json({ error: 'Block not found' }, { status: 404 });
@@ -24,6 +31,7 @@ export async function GET(
     } catch (error) {
         console.error('GET /api/blocks/[id] error:', {
             id,
+            userId,
             name: error instanceof Error ? error.name : 'Unknown error',
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
@@ -65,6 +73,11 @@ export async function PATCH(
     context: RouteParams
 ): Promise<NextResponse<Block | { error: string; details?: string }>> {
     const { id } = await context.params;
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
 
     try {
         await db.ensureConnection();
@@ -88,7 +101,7 @@ export async function PATCH(
         if (body.title !== undefined) updates.title = body.title;
         if (body.type !== undefined) updates.type = body.type;
 
-        const block = await db.blocks.updateBlock(id, updates, body.device, body.location);
+        const block = await db.blocks.updateBlock(id, userId, updates, body.device, body.location);
 
         return NextResponse.json(block);
     } catch (error) {
@@ -131,6 +144,11 @@ export async function DELETE(
     context: RouteParams
 ): Promise<NextResponse<null | { error: string; details?: string }>> {
     const { id } = await context.params;
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
 
     try {
         await db.ensureConnection();

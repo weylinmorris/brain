@@ -88,7 +88,6 @@ const EditorContent = ({ handleContentSave }: { handleContentSave: (content: str
 
 const BlockEditor: React.FC<BlockEditorProps> = ({ className }) => {
     const [mounted, setMounted] = useState(false);
-    const [editorKey, setEditorKey] = useState(0);
     const { modifyBlock, isLoading, error, blocks, activeBlockId } = useBlock();
     const activeBlock = blocks.find((block) => block.id === activeBlockId);
     const initialContentRef = useRef<string | null>(null);
@@ -108,10 +107,6 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ className }) => {
     useEffect(() => {
         if (!activeBlock) return;
 
-        // Reset editor only when switching blocks
-        // Reset editor and set view mode when switching blocks
-        setEditorKey((prev) => prev + 1);
-
         // Update content and title
         initialContentRef.current = activeBlock.content || null;
         setTitle(activeBlock.title || '');
@@ -123,12 +118,6 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ className }) => {
 
     const saveBlock = useCallback(
         async (newTitle: string | null, newContent: string | null) => {
-            console.log(
-                'Save triggered - Title:',
-                newTitle?.slice(0, 20),
-                'Content length:',
-                newContent?.length
-            );
             try {
                 if (!activeBlockId || !activeBlock) return;
 
@@ -216,20 +205,18 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ className }) => {
 
     return (
         <div className="flex h-full flex-col">
-            <div className="m-4 mb-2 flex items-center justify-between">
-                <textarea
-                    value={title}
-                    onChange={handleTitleChange}
-                    onBlur={() => saveBlock(title, null)}
-                    className="flex-1 resize-none border-none bg-transparent text-2xl font-bold text-neutral-800 outline-none dark:text-neutral-50"
-                    placeholder="Untitled"
-                    rows={1}
-                    ref={textareaRef}
-                />
-            </div>
+            <textarea
+                value={title}
+                onChange={handleTitleChange}
+                onBlur={() => saveBlock(title, null)}
+                className="m-4 mb-4 w-full resize-none border-none bg-transparent text-2xl font-bold text-neutral-800 outline-none dark:text-neutral-50"
+                placeholder="Untitled"
+                rows={1}
+                ref={textareaRef}
+            />
 
-            <div className={`min-h-0 flex-1 overflow-hidden rounded-md ${className || ''}`}>
-                <LexicalComposer key={editorKey} initialConfig={currentEditorConfig}>
+            <div className={`min-h-0 flex-1 overflow-hidden ${className || ''}`}>
+                <LexicalComposer key={activeBlockId} initialConfig={currentEditorConfig}>
                     <div className="flex h-full flex-col">
                         <ToolbarPlugin
                             handleSave={handleContentSave}

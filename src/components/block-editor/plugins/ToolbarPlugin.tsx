@@ -9,6 +9,7 @@ import {
 } from '@lexical/list';
 import { $getSelection, $isRangeSelection, $createParagraphNode } from 'lexical';
 import { $setBlocksType } from '@lexical/selection';
+import { $createCodeNode } from '@lexical/code';
 import {
     AlignLeft,
     AlignCenter,
@@ -26,6 +27,7 @@ import {
     Undo,
     Redo,
     Code,
+    FileCode,
 } from 'lucide-react';
 import SavePlugin from './SavePlugin';
 import { Block } from '../../../types/block';
@@ -155,7 +157,7 @@ const ToolbarPlugin = ({
     }) => (
         <button
             onClick={onClick}
-            className={`rounded p-2 text-neutral-800 hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-500 ${isActive ? 'bg-neutral-200 dark:bg-neutral-500' : ''}`}
+            className={`rounded p-2 text-neutral-400 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-600 ${isActive ? 'bg-neutral-100 dark:bg-neutral-600' : ''}`}
             title={tooltip}
         >
             <Icon size={18} />
@@ -163,11 +165,20 @@ const ToolbarPlugin = ({
     );
 
     // Divider component
-    const Divider = () => <div className="mx-2 h-6 w-px bg-neutral-300 dark:bg-neutral-600" />;
+    const Divider = () => <div className="mx-2 h-6 w-px bg-neutral-200 dark:bg-neutral-600" />;
+
+    const insertCodeBlock = () => {
+        editor.update(() => {
+            const selection = $getSelection();
+            if ($isRangeSelection(selection)) {
+                $setBlocksType(selection, () => $createCodeNode());
+            }
+        });
+    };
 
     return (
         <div
-            className={`flex flex-wrap items-center gap-1 border-b border-neutral-200 bg-neutral-50 p-2 dark:border-neutral-600 dark:bg-neutral-800 ${className || ''}`}
+            className={`mx-2 flex flex-wrap items-center gap-1 border-b border-neutral-200 bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800 ${className || ''}`}
         >
             {/* History Controls */}
             <div className="flex items-center">
@@ -285,6 +296,12 @@ const ToolbarPlugin = ({
                     onClick={toggleQuote}
                     icon={Quote}
                     tooltip="Quote"
+                    isActive={false}
+                />
+                <ToolbarButton
+                    onClick={insertCodeBlock}
+                    icon={FileCode}
+                    tooltip="Code Block"
                     isActive={false}
                 />
             </div>
