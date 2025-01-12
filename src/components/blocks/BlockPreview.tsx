@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock } from 'lucide-react';
+import { Clock, Link } from 'lucide-react';
 import { getTimeAgo } from '@/utils/timeUtils';
 import { Block } from '@/types/block';
 
@@ -8,9 +8,10 @@ interface BlockPreviewProps {
     onClick?: (block: Block) => void;
     showPreview?: boolean;
     showTime?: boolean;
+    similarity?: number;
 }
 
-function BlockPreview({ block, onClick, showPreview = true, showTime = true }: BlockPreviewProps) {
+function BlockPreview({ block, onClick, showPreview = true, showTime = true, similarity }: BlockPreviewProps) {
     return (
         <div
             className="cursor-pointer space-y-2 rounded-md bg-neutral-50 px-4 py-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-500 dark:hover:text-neutral-50 xl:bg-neutral-100 xl:dark:bg-neutral-600"
@@ -30,6 +31,13 @@ function BlockPreview({ block, onClick, showPreview = true, showTime = true }: B
                 <span className="flex items-center text-xs text-neutral-500 dark:text-neutral-400">
                     <Clock className="mr-1 h-2.5 w-2.5" />
                     {getTimeAgo(block.updatedAt)}
+                </span>
+            )}
+
+            {similarity && (
+                <span className="flex items-center text-xs text-neutral-500 dark:text-neutral-400">
+                    <Link className="mr-1 h-2.5 w-2.5" />
+                    {similarity}%
                 </span>
             )}
         </div>

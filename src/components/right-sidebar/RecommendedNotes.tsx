@@ -10,6 +10,10 @@ interface RecommendedNotesProps {
     setActiveTab: (tab: TabType) => void;
 }
 
+const convertSimilarityToPercentage = (similarity: number): number => {
+    return Math.round(similarity * 100);
+};
+
 export default function RecommendedNotes({ setActiveTab }: RecommendedNotesProps) {
     const { activeBlockId, setActiveBlock, recommendedBlocks, getRecommendedBlocks } = useBlock();
 
@@ -38,6 +42,7 @@ export default function RecommendedNotes({ setActiveTab }: RecommendedNotesProps
                         onClick={() => handleBlockClick(block)}
                         showPreview={true}
                         showTime={false}
+                        similarity={block.similarity ? convertSimilarityToPercentage(block.similarity) : undefined}
                     />
                 </div>
             ))}

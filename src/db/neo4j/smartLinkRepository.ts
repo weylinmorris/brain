@@ -446,7 +446,7 @@ export class SmartLinkRepository implements SmartLinkRepositoryInterface {
     async getRelatedBlockRecommendations(blockId: string, userId: string): Promise<Block[]> {
         try {
             const query = `
-                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block {id: $blockId})<-[r:LINKED|SIMILAR]->(related:Block)
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block {id: $blockId})<-[r:LINKED|SIMILAR|MAYBE_SIMILAR|POSSIBLY_SIMILAR]->(related:Block)
                 RETURN related {
                     .id,
                     .title,
