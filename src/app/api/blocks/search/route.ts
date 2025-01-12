@@ -5,7 +5,7 @@ import { Block } from '@/types/block';
 import { BlockSource } from '@/types/ai';
 import { BlockSearchResult } from '@/types/database';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '../../auth/[...nextauth]/options';
 
 type QueryType = 'question' | 'search';
 

@@ -3,7 +3,7 @@ import { db } from '@/db/client';
 import { BlockInput } from '@/types/database';
 import { Block } from '@/types/block';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 
 export async function GET(
     request: NextRequest
