@@ -299,14 +299,15 @@ export async function POST(
         }
         const userId = session.user.id;
 
-        await db.ensureConnection(); // Parse the form data from the request
+        await db.ensureConnection();
 
         const formData = await request.formData();
         const file = formData.get('file');
-
-        if (!file || !(file instanceof File)) {
+        
+        if (!file || !(file instanceof Blob)) {
+            console.log('No valid file uploaded');
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
-        } // Read the file content
+        }
 
         const fileContent = await file.text();
 
@@ -318,7 +319,7 @@ export async function POST(
             blocks: importedBlocks,
         });
     } catch (error) {
-        console.error('POST /api/logseq/import error:', {
+        console.error('POST /api/blocks/import error:', {
             name: error instanceof Error ? error.name : 'Unknown error',
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,

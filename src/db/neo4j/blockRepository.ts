@@ -263,10 +263,12 @@ export class BlockRepository implements BlockRepositoryInterface {
                     type: params.type,
                     plainText: params.plainText,
                     embeddings: params.embeddings,
-                    userId: params.userId,
                 }));
 
-                const result = await this.neo4j.executeWrite(query, { blocks: blocksParam });
+                const result = await this.neo4j.executeWrite(query, { 
+                    blocks: blocksParam,
+                    userId: inputs[0].userId // All blocks in a batch should have the same userId
+                });
                 console.log(`Database write completed for batch ${Math.floor(i / batchSize) + 1}`);
 
                 // Queue similarity computations
@@ -339,6 +341,7 @@ export class BlockRepository implements BlockRepositoryInterface {
 
         const cypher = `
             MATCH (u:User {id: $userId})-[:OWNS]->(b:Block)
+            WHERE b.embeddings IS NOT NULL
             WITH b, gds.similarity.cosine(b.embeddings, $embeddings) AS score
             WHERE score >= $threshold
             RETURN b {

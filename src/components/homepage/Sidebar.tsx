@@ -8,12 +8,12 @@ import ThemeToggle from '../../components/theme/ThemeToggle';
 import { Block } from '@/types/block';
 import { TabType } from '@/app/page';
 import { signOut, useSession } from 'next-auth/react';
-
+import { useToast } from '../../context/ToastContext';
 interface SidebarProps {
     setActiveTab: React.Dispatch<React.SetStateAction<TabType>>;
 }
 
-async function handleLogseqUpload(file: File): Promise<void> {
+async function handleLogseqUpload(file: File): Promise<Block[]> {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -24,8 +24,17 @@ async function handleLogseqUpload(file: File): Promise<void> {
         });
 
         if (!response.ok) {
-            throw new Error(`Upload failed: ${response.statusText}`);
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Upload failed: ${response.statusText}`);
         }
+
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error('Import failed');
+        }
+
+        return data.blocks;
     } catch (error) {
         console.error('Upload error:', error);
         throw error;
@@ -37,7 +46,7 @@ function Sidebar({ setActiveTab }: SidebarProps) {
     const { blocks, addBlock, removeBlock, setActiveBlock } = useBlock();
     const [isRecentExpanded, setIsRecentExpanded] = useState<boolean>(true);
     const [isAllExpanded, setIsAllExpanded] = useState<boolean>(false);
-
+    const { addToast } = useToast();
     const recentBlocks = useMemo(() => {
         return [...blocks]
             .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
@@ -84,11 +93,13 @@ function Sidebar({ setActiveTab }: SidebarProps) {
         const file = event.target.files?.[0];
         if (file) {
             try {
-                await handleLogseqUpload(file);
-                event.target.value = '';
+                const data = await handleLogseqUpload(file);
+                addToast('Imported ' + data.length + ' blocks. Refresh page to view.');
             } catch (error) {
                 console.error('Upload failed:', error);
+                alert('Failed to import file: ' + (error instanceof Error ? error.message : 'Unknown error'));
             }
+            event.target.value = '';
         }
     };
 
@@ -199,7 +210,10 @@ function Sidebar({ setActiveTab }: SidebarProps) {
                                 accept=".json,.md"
                             />
                             <button
-                                onClick={() => document.getElementById('fileInput')?.click()}
+                                onClick={() => {
+                                    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+                                    fileInput?.click();
+                                }}
                                 className="rounded-md bg-neutral-100 p-4 text-neutral-900 hover:bg-neutral-200 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500"
                                 aria-label="Import file"
                             >
