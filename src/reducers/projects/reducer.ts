@@ -9,7 +9,9 @@ export const initialProjectState: ProjectState = {
 };
 
 function sortProjects(projects: Project[]): Project[] {
-    return [...projects].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    return [...projects].sort(
+        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
 }
 
 export function projectReducer(state: ProjectState, action: ProjectAction): ProjectState {
@@ -64,8 +66,7 @@ export function projectReducer(state: ProjectState, action: ProjectAction): Proj
             return {
                 ...state,
                 projects: state.projects.filter((project) => project.id !== action.id),
-                activeProjectId:
-                    state.activeProjectId === action.id ? null : state.activeProjectId,
+                activeProjectId: state.activeProjectId === action.id ? null : state.activeProjectId,
                 error: null,
             };
 
@@ -86,4 +87,4 @@ export function projectReducer(state: ProjectState, action: ProjectAction): Proj
         default:
             return state;
     }
-} 
+}

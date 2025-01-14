@@ -1,9 +1,12 @@
 import { useContext } from 'react';
 import { ProjectContext } from '@/context/ProjectContext';
 import { Project, ProjectInput, ProjectUpdate } from '@/types/database';
-import { createProject, updateProject, deleteProject, addBlockToProject, removeBlockFromProject } from '@/lib/api';
+import { createProject, updateProject, deleteProject } from '@/lib/api';
+import { useToast } from '@/context/ToastContext';
 
 export function useProject() {
+    const { addToast } = useToast();
+
     const context = useContext(ProjectContext);
     if (!context) {
         throw new Error('useProject must be used within a ProjectProvider');
@@ -15,12 +18,15 @@ export function useProject() {
         try {
             const project = await createProject(input);
             dispatch({ type: 'ADD_PROJECT', project });
+
+            addToast('Project created successfully', 'success');
             return project;
         } catch (error) {
             dispatch({
                 type: 'SET_ERROR',
                 error: error instanceof Error ? error.message : 'Failed to create project',
             });
+            addToast('Failed to create project', 'error');
             throw error;
         }
     }
@@ -29,12 +35,15 @@ export function useProject() {
         try {
             const project = await updateProject(id, updates);
             dispatch({ type: 'UPDATE_PROJECT', project });
+
+            addToast('Project updated successfully', 'success');
             return project;
         } catch (error) {
             dispatch({
                 type: 'SET_ERROR',
                 error: error instanceof Error ? error.message : 'Failed to update project',
             });
+            addToast('Failed to update project', 'error');
             throw error;
         }
     }
@@ -43,37 +52,14 @@ export function useProject() {
         try {
             await deleteProject(id);
             dispatch({ type: 'REMOVE_PROJECT', id });
+
+            addToast('Project deleted successfully', 'success');
         } catch (error) {
             dispatch({
                 type: 'SET_ERROR',
                 error: error instanceof Error ? error.message : 'Failed to delete project',
             });
-            throw error;
-        }
-    }
-
-    async function addBlock(projectId: string, blockId: string, relationship: 'OWNS' | 'RELATED'): Promise<void> {
-        try {
-            await addBlockToProject(projectId, blockId, relationship);
-            // Note: We might want to refresh the project or update its state here
-        } catch (error) {
-            dispatch({
-                type: 'SET_ERROR',
-                error: error instanceof Error ? error.message : 'Failed to add block to project',
-            });
-            throw error;
-        }
-    }
-
-    async function removeBlock(projectId: string, blockId: string): Promise<void> {
-        try {
-            await removeBlockFromProject(projectId, blockId);
-            // Note: We might want to refresh the project or update its state here
-        } catch (error) {
-            dispatch({
-                type: 'SET_ERROR',
-                error: error instanceof Error ? error.message : 'Failed to remove block from project',
-            });
+            addToast('Failed to delete project', 'error');
             throw error;
         }
     }
@@ -88,14 +74,12 @@ export function useProject() {
 
     return {
         projects: state.projects,
-        activeProject: state.projects.find(p => p.id === state.activeProjectId) || null,
+        activeProject: state.projects.find((p) => p.id === state.activeProjectId) || null,
         isLoading: state.isLoading,
         error: state.error,
         create,
         update,
         remove,
-        addBlock,
-        removeBlock,
         setActiveProject,
     };
-} 
+}

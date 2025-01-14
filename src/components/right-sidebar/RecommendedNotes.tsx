@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useBlock } from '@/hooks/useBlock';
 import { useEffect } from 'react';
 import BlockPreview from '@/components/blocks/BlockPreview';
@@ -7,14 +8,14 @@ import { Block } from '@/types/block';
 import { TabType } from '@/app/page';
 
 interface RecommendedNotesProps {
-    setActiveTab: (tab: TabType) => void;
+    setActiveTab: React.Dispatch<React.SetStateAction<TabType>>;
 }
 
-const convertSimilarityToPercentage = (similarity: number): number => {
+function convertSimilarityToPercentage(similarity: number): number {
     return Math.round(similarity * 100);
-};
+}
 
-export default function RecommendedNotes({ setActiveTab }: RecommendedNotesProps) {
+const RecommendedNotes: React.FC<RecommendedNotesProps> = ({ setActiveTab }) => {
     const { activeBlockId, setActiveBlock, recommendedBlocks, getRecommendedBlocks } = useBlock();
 
     useEffect(() => {
@@ -30,7 +31,7 @@ export default function RecommendedNotes({ setActiveTab }: RecommendedNotesProps
     return (
         <div className="w-full flex-1 overflow-auto p-2">
             {recommendedBlocks.length === 0 && (
-                <div className="mt-8 text-center text-sm font-semibold text-gray-500">
+                <div className="mt-8 text-center text-sm font-semibold text-neutral-500 dark:text-neutral-400">
                     No recommended notes found
                 </div>
             )}
@@ -42,10 +43,16 @@ export default function RecommendedNotes({ setActiveTab }: RecommendedNotesProps
                         onClick={() => handleBlockClick(block)}
                         showPreview={true}
                         showTime={false}
-                        similarity={block.similarity ? convertSimilarityToPercentage(block.similarity) : undefined}
+                        similarity={
+                            block.similarity
+                                ? convertSimilarityToPercentage(block.similarity)
+                                : undefined
+                        }
                     />
                 </div>
             ))}
         </div>
     );
-}
+};
+
+export default RecommendedNotes;

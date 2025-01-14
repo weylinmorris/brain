@@ -58,7 +58,9 @@ function ProjectProviderContent({ children }: ProjectProviderProps) {
         };
     }, []);
 
-    return <ProjectContext.Provider value={{ state, dispatch }}>{children}</ProjectContext.Provider>;
+    return (
+        <ProjectContext.Provider value={{ state, dispatch }}>{children}</ProjectContext.Provider>
+    );
 }
 
 export function ProjectProvider({ children }: ProjectProviderProps) {
@@ -67,4 +69,4 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
             <ProjectProviderContent>{children}</ProjectProviderContent>
         </ErrorBoundary>
     );
-} 
+}

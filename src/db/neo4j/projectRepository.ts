@@ -4,7 +4,7 @@ import {
     ProjectRepositoryInterface,
     Project,
     ProjectInput,
-    ProjectUpdate
+    ProjectUpdate,
 } from '@/types/database';
 
 export class ProjectRepository implements ProjectRepositoryInterface {
@@ -82,7 +82,7 @@ export class ProjectRepository implements ProjectRepositoryInterface {
 
         const result = await this.neo4j.executeQuery(query, { userId });
 
-        return result.map(record => ({
+        return result.map((record) => ({
             id: record.project.id,
             name: record.project.name,
             description: record.project.description,
@@ -167,32 +167,4 @@ export class ProjectRepository implements ProjectRepositoryInterface {
 
         await this.neo4j.executeWrite(query, { id, userId });
     }
-
-    async addBlockToProject(
-        projectId: string,
-        blockId: string,
-        userId: string,
-        relationship: 'OWNS' | 'RELATED'
-    ): Promise<void> {
-        const query = `
-            MATCH (u:User {id: $userId})-[:OWNS]->(p:Project {id: $projectId})
-            MATCH (b:Block {id: $blockId})
-            WHERE (u)-[:OWNS]->(b)
-            MERGE (p)-[r:${relationship}]->(b)
-            SET p.updatedAt = datetime()
-        `;
-
-        await this.neo4j.executeWrite(query, { projectId, blockId, userId });
-    }
-
-    async removeBlockFromProject(projectId: string, blockId: string, userId: string): Promise<void> {
-        const query = `
-            MATCH (u:User {id: $userId})-[:OWNS]->(p:Project {id: $projectId})
-            MATCH (p)-[r:OWNS|RELATED]->(b:Block {id: $blockId})
-            DELETE r
-            SET p.updatedAt = datetime()
-        `;
-
-        await this.neo4j.executeWrite(query, { projectId, blockId, userId });
-    }
-} 
+}

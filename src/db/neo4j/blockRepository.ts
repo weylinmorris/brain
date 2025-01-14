@@ -265,9 +265,9 @@ export class BlockRepository implements BlockRepositoryInterface {
                     embeddings: params.embeddings,
                 }));
 
-                const result = await this.neo4j.executeWrite(query, { 
+                const result = await this.neo4j.executeWrite(query, {
                     blocks: blocksParam,
-                    userId: inputs[0].userId // All blocks in a batch should have the same userId
+                    userId: inputs[0].userId, // All blocks in a batch should have the same userId
                 });
                 console.log(`Database write completed for batch ${Math.floor(i / batchSize) + 1}`);
 
@@ -330,11 +330,11 @@ export class BlockRepository implements BlockRepositoryInterface {
     async searchBlocks(
         query: string,
         userId: string,
-        threshold = 0.25
+        threshold = 0.1
     ): Promise<BlockSearchResult> {
         const openai = this.ensureOpenAI();
-
         const embeddings = await generateEmbeddings(openai, query);
+
         if (!embeddings) {
             throw new Error('Failed to generate embeddings for search query');
         }
@@ -363,15 +363,17 @@ export class BlockRepository implements BlockRepositoryInterface {
             userId,
         });
 
+        const transformedResults = result.map((row) => ({
+            ...row.block,
+            createdAt: new Date(row.block.createdAt),
+            updatedAt: new Date(row.block.updatedAt),
+            similarity: row.score,
+        }));
+
         return {
             titleMatches: [],
             contentMatches: [],
-            similarityMatches: result.map((row) => ({
-                ...row.block,
-                createdAt: new Date(row.block.createdAt),
-                updatedAt: new Date(row.block.updatedAt),
-                similarity: row.score,
-            })),
+            similarityMatches: transformedResults,
         };
     }
 

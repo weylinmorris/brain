@@ -16,4 +16,4 @@ export type ProjectAction =
     | { type: 'UPDATE_PROJECT'; project: Project }
     | { type: 'REMOVE_PROJECT'; id: string }
     | { type: 'SET_ACTIVE_PROJECT'; id: string }
-    | { type: 'CLEAR_ACTIVE_PROJECT' }; 
+    | { type: 'CLEAR_ACTIVE_PROJECT' };

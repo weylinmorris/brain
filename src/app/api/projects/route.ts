@@ -72,7 +72,10 @@ export async function POST(
 
         // Validate required fields
         if (!body.name || typeof body.name !== 'string') {
-            return NextResponse.json({ error: 'Name is required and must be a string' }, { status: 400 });
+            return NextResponse.json(
+                { error: 'Name is required and must be a string' },
+                { status: 400 }
+            );
         }
 
         const projectData: ProjectInput = {
@@ -100,4 +103,4 @@ export async function POST(
             { status: 500 }
         );
     }
-} 
+}

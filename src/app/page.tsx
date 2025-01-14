@@ -23,17 +23,17 @@ function HomeContent() {
         <>
             <div className="flex h-full items-stretch">
                 <div
-                    className={`hidden w-full xl:block xl:w-96 ${activeTab === 'notes' ? '!block' : ''}`}
+                    className={`hidden w-full xl:block xl:w-80 ${activeTab === 'notes' ? '!block' : ''}`}
                 >
-                    <Sidebar setActiveTab={setActiveTab} />
+                    <Sidebar />
                 </div>
                 <div className={`w-full ${activeTab === 'editor' ? 'block' : 'hidden xl:block'}`}>
                     <Main />
                 </div>
                 <div
-                    className={`hidden w-full xl:block xl:w-96 ${activeTab === 'recommended' ? '!block' : ''}`}
+                    className={`hidden w-full xl:block xl:w-[32rem] ${activeTab === 'recommended' ? '!block' : ''}`}
                 >
-                    <Recommended setActiveTab={setActiveTab} />
+                    <Recommended />
                 </div>
             </div>
             <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />

@@ -303,7 +303,7 @@ export async function POST(
 
         const formData = await request.formData();
         const file = formData.get('file');
-        
+
         if (!file || !(file instanceof Blob)) {
             console.log('No valid file uploaded');
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });

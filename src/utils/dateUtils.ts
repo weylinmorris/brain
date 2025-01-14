@@ -24,4 +24,4 @@ export function formatRelativeTime(date: Date | string): string {
     } else {
         return `${diffInYears}y ago`;
     }
-} 
+}

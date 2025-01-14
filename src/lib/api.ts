@@ -1,5 +1,12 @@
 import { Block } from '@/types/block';
-import { BlockInput, BlockUpdate, BlockSearchResult, Project, ProjectInput, ProjectUpdate } from '@/types/database';
+import {
+    BlockInput,
+    BlockUpdate,
+    BlockSearchResult,
+    Project,
+    ProjectInput,
+    ProjectUpdate,
+} from '@/types/database';
 import { SearchResults } from '@/types/state';
 import { getDeviceLocation, getDeviceName } from '@/utils/metadataUtils';
 
@@ -135,24 +142,6 @@ export async function updateProject(id: string, project: ProjectUpdate): Promise
 
 export async function deleteProject(id: string): Promise<void> {
     const response = await fetch(`/api/projects/${id}`, {
-        method: 'DELETE',
-    });
-
-    return handleResponse<void>(response);
-}
-
-export async function addBlockToProject(projectId: string, blockId: string, relationship: 'OWNS' | 'RELATED'): Promise<void> {
-    const response = await fetch(`/api/projects/${projectId}/blocks/${blockId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ relationship }),
-    });
-
-    return handleResponse<void>(response);
-}
-
-export async function removeBlockFromProject(projectId: string, blockId: string): Promise<void> {
-    const response = await fetch(`/api/projects/${projectId}/blocks/${blockId}`, {
         method: 'DELETE',
     });
 

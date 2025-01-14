@@ -113,8 +113,6 @@ export interface ProjectRepositoryInterface {
     getProject(id: string, userId: string): Promise<Project>;
     updateProject(id: string, userId: string, updates: ProjectUpdate): Promise<Project>;
     deleteProject(id: string, userId: string): Promise<void>;
-    addBlockToProject(projectId: string, blockId: string, userId: string, relationship: 'OWNS' | 'RELATED'): Promise<void>;
-    removeBlockFromProject(projectId: string, blockId: string, userId: string): Promise<void>;
 }
 
 export interface GeoLocation {
