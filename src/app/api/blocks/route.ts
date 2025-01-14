@@ -8,6 +8,8 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 export async function GET(
     request: NextRequest
 ): Promise<NextResponse<Block[] | { error: string; details?: string }>> {
+    const projectId = request.nextUrl.searchParams.get('projectId');
+
     try {
         await db.ensureConnection();
 
@@ -17,7 +19,7 @@ export async function GET(
         }
         const userId = session.user.id;
 
-        const blocks = await db.blocks.getBlocks(userId);
+        const blocks = await db.blocks.getBlocks(userId, false, projectId ?? undefined);
 
         return NextResponse.json(blocks || []);
     } catch (error) {
@@ -59,6 +61,7 @@ interface CreateBlockRequest {
     isPage?: boolean;
     device?: string | null;
     location?: { lat: number; lng: number } | null;
+    projectId?: string | null;
 }
 
 export async function POST(
@@ -83,6 +86,7 @@ export async function POST(
             type: body.type ?? 'text',
             device: body.device ?? undefined,
             location: body.location ?? undefined,
+            projectId: body.projectId ?? undefined,
         };
 
         const block = await db.blocks.createBlock(blockData);

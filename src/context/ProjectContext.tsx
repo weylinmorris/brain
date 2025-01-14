@@ -31,13 +31,6 @@ function ProjectProviderContent({ children }: ProjectProviderProps) {
                 if (!mounted) return;
 
                 dispatch({ type: 'SET_PROJECTS', projects });
-
-                if (!state.activeProjectId && projects.length > 0) {
-                    const sortedProjects = [...projects].sort(
-                        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-                    );
-                    dispatch({ type: 'SET_ACTIVE_PROJECT', id: sortedProjects[0].id });
-                }
             } catch (error) {
                 if (!mounted) return;
                 dispatch({

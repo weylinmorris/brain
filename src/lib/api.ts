@@ -28,12 +28,22 @@ async function handleResponse<T>(response: Response): Promise<T> {
     return response.json();
 }
 
-export async function fetchBlocks(): Promise<Block[]> {
-    const response = await fetch('/api/blocks');
+export async function fetchBlocks(projectId?: string): Promise<Block[]> {
+    if (projectId) {
+        const response = await fetch(`/api/blocks?projectId=${projectId}`);
+        return handleResponse<Block[]>(response);
+    }
+    const response = await fetch(`/api/blocks`);
     return handleResponse<Block[]>(response);
 }
 
-export async function searchBlocks(query: string): Promise<SearchResults> {
+export async function searchBlocks(query: string, projectId?: string): Promise<SearchResults> {
+    if (projectId) {
+        const response = await fetch(
+            `/api/blocks/search?query=${encodeURIComponent(query)}&projectId=${projectId}`
+        );
+        return handleResponse<SearchResults>(response);
+    }
     const response = await fetch(`/api/blocks/search?query=${encodeURIComponent(query)}`);
     return handleResponse<SearchResults>(response);
 }

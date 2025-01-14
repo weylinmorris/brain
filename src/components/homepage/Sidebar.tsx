@@ -9,14 +9,15 @@ import { ContextMenu } from '@/components/global/ContextMenu';
 
 function Sidebar() {
     const { data: session } = useSession();
-    const { projects, activeProject, isLoading, error, create, update, remove, setActiveProject } = useProject();
+    const { projects, activeProject, isLoading, error, create, update, remove, setActiveProject } =
+        useProject();
     const [isCreatingProject, setIsCreatingProject] = useState(false);
     const [newProjectName, setNewProjectName] = useState('');
     const [editingProject, setEditingProject] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-    const filteredProjects = projects.filter(project => 
+    const filteredProjects = projects.filter((project) =>
         project.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -26,7 +27,7 @@ function Sidebar() {
             try {
                 await create({
                     name: newProjectName,
-                    userId: session.user.id
+                    userId: session.user.id,
                 });
                 setNewProjectName('');
                 setIsCreatingProject(false);
@@ -57,19 +58,20 @@ function Sidebar() {
 
     const ProjectActions = ({ project }: { project: { id: string; name: string } }) => {
         const isOpen = openMenuId === project.id;
-        
+
         const menuItems = [
             {
                 label: 'Rename',
                 icon: <Edit2 size={14} />,
-                onClick: () => setEditingProject(project.id)
+                onClick: () => setEditingProject(project.id),
             },
             {
                 label: 'Delete',
                 icon: <Trash2 size={14} />,
                 onClick: () => handleDeleteProject(project.id),
-                className: "flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-neutral-100 dark:text-red-400 dark:hover:bg-neutral-700"
-            }
+                className:
+                    'flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-neutral-100 dark:text-red-400 dark:hover:bg-neutral-700',
+            },
         ];
 
         return (
@@ -82,7 +84,11 @@ function Sidebar() {
     };
 
     if (isLoading) {
-        return <div className="flex h-screen w-80 items-center justify-center bg-neutral-100 dark:bg-neutral-900">Loading...</div>;
+        return (
+            <div className="mt-4 flex h-screen w-80 justify-center bg-neutral-100 text-sm text-neutral-300 dark:bg-neutral-900 dark:text-neutral-400">
+                Loading...
+            </div>
+        );
     }
 
     if (error) {
@@ -126,7 +132,7 @@ function Sidebar() {
                     />
                 </div>
                 {!isCreatingProject ? (
-                    <button 
+                    <button
                         onClick={() => setIsCreatingProject(true)}
                         className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
                     >
@@ -177,69 +183,89 @@ function Sidebar() {
                                 setActiveProject(null);
                             }
                         }}
-                        className={`group relative flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer ${!activeProject ? 'bg-neutral-200 dark:bg-neutral-700' : ''}`}
+                        className={`group relative flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left hover:bg-neutral-200 dark:hover:bg-neutral-700 ${!activeProject ? 'bg-neutral-200 dark:bg-neutral-700' : ''}`}
                     >
                         {!activeProject ? (
-                            <FolderOpen size={18} className="text-primary-600 dark:text-primary-400" />
+                            <FolderOpen
+                                size={18}
+                                className="text-primary-600 dark:text-primary-400"
+                            />
                         ) : (
                             <Folder size={18} className="text-neutral-500 dark:text-neutral-400" />
                         )}
                         <div className="flex-1 overflow-hidden">
-                            <div className="truncate font-medium text-sm text-neutral-900 dark:text-white">
+                            <div className="truncate text-sm font-medium text-neutral-900 dark:text-white">
                                 All Projects
                             </div>
                         </div>
                     </div>
-                    {filteredProjects.sort((a, b) => a.name.localeCompare(b.name)).map(project => (
-                        <div key={project.id} className="relative">
-                            <div
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => setActiveProject(project.id)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        setActiveProject(project.id);
-                                    }
-                                }}
-                                className={`group relative flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-neutral-200 dark:hover:bg-neutral-700 ${
-                                    activeProject?.id === project.id ? 'bg-neutral-200 dark:bg-neutral-700' : ''
-                                } cursor-pointer`}
-                            >
-                                {activeProject?.id === project.id ? (
-                                    <FolderOpen size={18} className="text-primary-600 dark:text-primary-400" />
-                                ) : (
-                                    <Folder size={18} className="text-neutral-500 dark:text-neutral-400" />
-                                )}
-                                <div className="flex-1 overflow-hidden">
-                                    {editingProject === project.id ? (
-                                        <input
-                                            type="text"
-                                            defaultValue={project.name}
-                                            autoFocus
-                                            onBlur={(e: React.FocusEvent<HTMLInputElement>) => handleUpdateProject(project.id, e.target.value)}
-                                            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                                                if (e.key === 'Enter') {
-                                                    handleUpdateProject(project.id, e.currentTarget.value);
-                                                } else if (e.key === 'Escape') {
-                                                    setEditingProject(null);
-                                                }
-                                                e.stopPropagation();
-                                            }}
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="w-full rounded border border-neutral-300 bg-white px-2 py-1 text-sm dark:border-neutral-600 dark:bg-neutral-700"
+                    {filteredProjects
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((project) => (
+                            <div key={project.id} className="relative">
+                                <div
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => setActiveProject(project.id)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            setActiveProject(project.id);
+                                        }
+                                    }}
+                                    className={`group relative flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-neutral-200 dark:hover:bg-neutral-700 ${
+                                        activeProject?.id === project.id
+                                            ? 'bg-neutral-200 dark:bg-neutral-700'
+                                            : ''
+                                    } cursor-pointer`}
+                                >
+                                    {activeProject?.id === project.id ? (
+                                        <FolderOpen
+                                            size={18}
+                                            className="text-primary-600 dark:text-primary-400"
                                         />
                                     ) : (
-                                        <>
-                                            <div className="truncate font-medium text-sm text-neutral-900 dark:text-white">
-                                                {project.name}
-                                            </div>
-                                        </>
+                                        <Folder
+                                            size={18}
+                                            className="text-neutral-500 dark:text-neutral-400"
+                                        />
                                     )}
+                                    <div className="flex-1 overflow-hidden">
+                                        {editingProject === project.id ? (
+                                            <input
+                                                type="text"
+                                                defaultValue={project.name}
+                                                autoFocus
+                                                onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
+                                                    handleUpdateProject(project.id, e.target.value)
+                                                }
+                                                onKeyDown={(
+                                                    e: React.KeyboardEvent<HTMLInputElement>
+                                                ) => {
+                                                    if (e.key === 'Enter') {
+                                                        handleUpdateProject(
+                                                            project.id,
+                                                            e.currentTarget.value
+                                                        );
+                                                    } else if (e.key === 'Escape') {
+                                                        setEditingProject(null);
+                                                    }
+                                                    e.stopPropagation();
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="w-full rounded border border-neutral-300 bg-white px-2 py-1 text-sm dark:border-neutral-600 dark:bg-neutral-700"
+                                            />
+                                        ) : (
+                                            <>
+                                                <div className="truncate text-sm font-medium text-neutral-900 dark:text-white">
+                                                    {project.name}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                    {!editingProject && <ProjectActions project={project} />}
                                 </div>
-                                {!editingProject && <ProjectActions project={project} />}
                             </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
             </div>
         </div>

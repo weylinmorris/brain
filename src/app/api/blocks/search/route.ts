@@ -41,7 +41,7 @@ export async function GET(
         // get query from the ?query= parameter
         const { searchParams } = new URL(request.url);
         const query = searchParams.get('query');
-
+        const projectId = searchParams.get('projectId');
         if (!query) {
             return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
         }
@@ -49,7 +49,7 @@ export async function GET(
         // Classify the query
         const queryType = (await classifyQuery(query)) as QueryType;
 
-        const blocks = await db.blocks.searchBlocks(query, userId);
+        const blocks = await db.blocks.searchBlocks(query, userId, 0.25, projectId ?? undefined);
 
         // Flatten the blocks object
         const flattenedBlocks: Block[] = [

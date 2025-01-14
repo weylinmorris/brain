@@ -7,8 +7,8 @@ import { ProjectProvider } from './ProjectContext';
 import { combineComponents } from './utils';
 
 export const RootProvider = combineComponents(
-    BlockProvider,
-    SearchProvider,
     ToastProvider,
-    ProjectProvider
+    ProjectProvider,
+    BlockProvider,
+    SearchProvider
 );

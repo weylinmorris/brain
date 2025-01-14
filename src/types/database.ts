@@ -48,6 +48,7 @@ export interface BlockInput {
     device?: string;
     location?: GeoLocation;
     userId: string;
+    projectId?: string;
 }
 
 export interface BlockUpdate {
@@ -55,6 +56,7 @@ export interface BlockUpdate {
     content?: string;
     type?: 'text' | 'image' | 'code' | 'math';
     userId?: string;
+    projectId?: string;
 }
 
 export interface BlockSearchResult {
@@ -66,21 +68,28 @@ export interface BlockSearchResult {
 export interface BlockRepositoryInterface {
     createBlock(input: BlockInput): Promise<Block>;
     createManyBlocks(inputs: BlockInput[]): Promise<Block[]>;
-    searchBlocks(query: string, userId: string, threshold?: number): Promise<BlockSearchResult>;
-    getBlocks(userId: string, includeEmbeddings?: boolean): Promise<Block[]>;
+    searchBlocks(
+        query: string,
+        userId: string,
+        threshold?: number,
+        projectId?: string
+    ): Promise<BlockSearchResult>;
+    getBlocks(userId: string, includeEmbeddings?: boolean, projectId?: string): Promise<Block[]>;
     getBlock(
         id: string,
         userId: string,
         device?: string,
         location?: GeoLocation,
-        includeEmbeddings?: boolean
+        includeEmbeddings?: boolean,
+        projectId?: string
     ): Promise<Block>;
     updateBlock(
         id: string,
         userId: string,
         updates: BlockUpdate,
         device?: string,
-        location?: GeoLocation
+        location?: GeoLocation,
+        projectId?: string
     ): Promise<Block>;
     deleteBlock(id: string): Promise<void>;
     setSmartLinkRepository(repo: SmartLinkRepositoryInterface): void;

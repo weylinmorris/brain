@@ -66,6 +66,7 @@ interface UpdateBlockRequest {
     type?: 'text' | 'image' | 'code' | 'math';
     device?: string;
     location?: GeoLocation;
+    projectId?: string;
 }
 
 export async function PATCH(
@@ -100,6 +101,7 @@ export async function PATCH(
         if (body.content !== undefined) updates.content = body.content;
         if (body.title !== undefined) updates.title = body.title;
         if (body.type !== undefined) updates.type = body.type;
+        if (body.projectId !== undefined) updates.projectId = body.projectId;
 
         const block = await db.blocks.updateBlock(id, userId, updates, body.device, body.location);
 
