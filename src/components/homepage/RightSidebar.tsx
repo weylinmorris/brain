@@ -178,7 +178,10 @@ const RightSidebar: React.FC = () => {
                     <input
                         type="text"
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={(e) => {
+                            setQuery(e.target.value);
+                            clearSearch();
+                        }}
                         onKeyDown={handleKeyPress}
                         placeholder="Search notes..."
                         className="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-10 pr-10 text-sm text-neutral-900 placeholder-neutral-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder-neutral-400"

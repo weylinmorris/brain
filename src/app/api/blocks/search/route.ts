@@ -49,7 +49,7 @@ export async function GET(
         // Classify the query
         const queryType = (await classifyQuery(query)) as QueryType;
 
-        const blocks = await db.blocks.searchBlocks(query, userId, 0.25, projectId ?? undefined);
+        const blocks = await db.blocks.searchBlocks(query, userId, 0.15, projectId ?? undefined);
 
         // Flatten the blocks object
         const flattenedBlocks: Block[] = [

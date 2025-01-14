@@ -486,11 +486,22 @@ export class BlockRepository implements BlockRepositoryInterface {
 
     async updateBlock(id: string, userId: string, updates: BlockUpdate): Promise<Block> {
         try {
-            const plainText = getPlainText(updates.content || '');
-            const combinedText = `${updates.title} ${plainText}`;
-            const embeddings = await generateEmbeddings(this.ensureOpenAI(), combinedText);
+            // Only generate new plainText if content is being updated
+            const blockUpdates: Record<string, any> = {
+                ...updates,
+                updatedAt: new Date().toISOString(),
+            };
 
-            // First match the block and user
+            if (updates.content !== undefined) {
+                blockUpdates.plainText = getPlainText(updates.content);
+                // Only generate new embeddings if title or content changed
+                const combinedText = `${updates.title || ''} ${blockUpdates.plainText}`;
+                blockUpdates.embeddings = await generateEmbeddings(
+                    this.ensureOpenAI(),
+                    combinedText
+                );
+            }
+
             const query = `
                 MATCH (u:User {id: $userId})-[:OWNS]->(b:Block {id: $id})
                 ${
@@ -513,24 +524,8 @@ export class BlockRepository implements BlockRepositoryInterface {
                 `
                         : ''
                 }
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .plainText,
-                    .type,
-                    .createdAt,
-                    .updatedAt,
-                    projectId: head([(b)-[:IN_PROJECT]->(p:Project) | p { .id, .name }])
-                } as block
+                RETURN b { .* } as block
             `;
-
-            const blockUpdates = {
-                ...updates,
-                plainText,
-                embeddings,
-                updatedAt: new Date().toISOString(),
-            };
 
             const result = await this.neo4j.executeWrite(query, {
                 id,
