@@ -1,6 +1,6 @@
 import React from 'react';
 import { Clock, Link } from 'lucide-react';
-import { getTimeAgo } from '@/utils/timeUtils';
+import { formatRelativeTime } from '@/utils/dateUtils';
 import { Block } from '@/types/block';
 
 interface BlockPreviewProps {
@@ -30,7 +30,7 @@ function BlockPreview({ block, onClick, showPreview = true, showTime = true, sim
             {showTime && (
                 <span className="flex items-center text-xs text-neutral-500 dark:text-neutral-400">
                     <Clock className="mr-1 h-2.5 w-2.5" />
-                    {getTimeAgo(block.updatedAt)}
+                    {formatRelativeTime(block.updatedAt)}
                 </span>
             )}
 

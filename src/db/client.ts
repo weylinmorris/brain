@@ -1,10 +1,12 @@
 import { Neo4jClient } from './neo4j/driver';
 import { BlockRepository } from './neo4j/blockRepository';
 import { SmartLinkRepository } from './neo4j/smartLinkRepository';
+import { ProjectRepository } from './neo4j/projectRepository';
 import {
     DatabaseInterface,
     BlockRepositoryInterface,
     SmartLinkRepositoryInterface,
+    ProjectRepositoryInterface,
 } from '@/types/database';
 import OpenAI from 'openai';
 
@@ -13,6 +15,7 @@ class Database implements DatabaseInterface {
     private readonly _neo4j: Neo4jClient;
     private readonly _blocks: BlockRepositoryInterface;
     private readonly _smartLinks: SmartLinkRepositoryInterface;
+    private readonly _projects: ProjectRepositoryInterface;
     private _isConnected: boolean;
     private _connectionPromise: Promise<void> | null;
 
@@ -23,6 +26,7 @@ class Database implements DatabaseInterface {
         });
         this._blocks = new BlockRepository(this._neo4j);
         this._smartLinks = new SmartLinkRepository(this._neo4j, this._blocks);
+        this._projects = new ProjectRepository(this._neo4j);
         this._isConnected = false;
         this._connectionPromise = null;
 
@@ -60,6 +64,10 @@ class Database implements DatabaseInterface {
 
     get smartLinks(): SmartLinkRepositoryInterface {
         return this._smartLinks;
+    }
+
+    get projects(): ProjectRepositoryInterface {
+        return this._projects;
     }
 
     async disconnect(): Promise<void> {

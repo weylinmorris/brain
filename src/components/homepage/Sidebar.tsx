@@ -1,227 +1,269 @@
 'use client';
 
-import { ChevronUpIcon, Upload, LogOut } from 'lucide-react';
-import { useBlock } from '@/hooks/useBlock';
-import { useMemo, useState, ChangeEvent } from 'react';
-import SwipeableNote from '@/components/blocks/SwipeableNote';
-import ThemeToggle from '../../components/theme/ThemeToggle';
-import { Block } from '@/types/block';
-import { TabType } from '@/app/page';
+import React, { useState } from 'react';
+import { LogOut, Plus, FolderOpen, Folder, Search, Edit2, Trash2, ChevronRight, AlertCircle } from 'lucide-react';
+import { useProject } from '@/hooks/useProject';
 import { signOut, useSession } from 'next-auth/react';
-import { useToast } from '../../context/ToastContext';
+import ThemeToggle from '@/components/theme/ThemeToggle';
+import { formatRelativeTime } from '@/utils/dateUtils';
+import { useToast } from '@/context/ToastContext';
+import { TabType } from '@/app/page';
+
 interface SidebarProps {
     setActiveTab: React.Dispatch<React.SetStateAction<TabType>>;
 }
 
-async function handleLogseqUpload(file: File): Promise<Block[]> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-        const response = await fetch('/api/blocks/import', {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `Upload failed: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        
-        if (!data.success) {
-            throw new Error('Import failed');
-        }
-
-        return data.blocks;
-    } catch (error) {
-        console.error('Upload error:', error);
-        throw error;
-    }
-}
-
 function Sidebar({ setActiveTab }: SidebarProps) {
     const { data: session } = useSession();
-    const { blocks, addBlock, removeBlock, setActiveBlock } = useBlock();
-    const [isRecentExpanded, setIsRecentExpanded] = useState<boolean>(true);
-    const [isAllExpanded, setIsAllExpanded] = useState<boolean>(false);
+    const { projects, activeProject, isLoading, error, create, update, remove, setActiveProject } = useProject();
     const { addToast } = useToast();
-    const recentBlocks = useMemo(() => {
-        return [...blocks]
-            .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-            .slice(0, 10);
-    }, [blocks]);
+    const [isCreatingProject, setIsCreatingProject] = useState(false);
+    const [newProjectName, setNewProjectName] = useState('');
+    const [editingProject, setEditingProject] = useState<string | null>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
-    const allBlocks = useMemo(() => {
-        return [...blocks].sort((a, b) => a.title.localeCompare(b.title));
-    }, [blocks]);
+    const filteredProjects = projects.filter(project => 
+        project.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-    const handleNewBlockClick = async (): Promise<void> => {
-        const now = new Date();
-        const newBlock = await addBlock({
-            title: '',
-            content: '',
-            type: 'text',
-            userId: session?.user?.id as string,
-        });
-
-        setActiveBlock(newBlock.id);
-        setActiveTab('editor');
-    };
-
-    const handleBlockClick = (block: Block): void => {
-        setActiveBlock(block.id);
-        setActiveTab('editor');
-    };
-
-    const handleDeleteBlock = async (blockId: string): Promise<void> => {
-        await removeBlock(blockId);
-    };
-
-    const toggleRecentExpanded = (): void => {
-        setIsAllExpanded(isRecentExpanded ? isAllExpanded : false);
-        setIsRecentExpanded(!isRecentExpanded);
-    };
-
-    const toggleAllExpanded = (): void => {
-        setIsRecentExpanded(isAllExpanded ? isRecentExpanded : false);
-        setIsAllExpanded(!isAllExpanded);
-    };
-
-    const handleFileChange = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
-        const file = event.target.files?.[0];
-        if (file) {
+    const handleCreateProject = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newProjectName.trim() && session?.user?.id) {
             try {
-                const data = await handleLogseqUpload(file);
-                addToast('Imported ' + data.length + ' blocks. Refresh page to view.');
+                await create({
+                    name: newProjectName,
+                    userId: session.user.id
+                });
+                setNewProjectName('');
+                setIsCreatingProject(false);
+                addToast('Project created successfully', 'success');
             } catch (error) {
-                console.error('Upload failed:', error);
-                alert('Failed to import file: ' + (error instanceof Error ? error.message : 'Unknown error'));
+                console.error('Failed to create project:', error);
+                addToast('Failed to create project', 'error');
             }
-            event.target.value = '';
         }
     };
 
-    const handleSignOut = async () => {
-        await signOut({ redirect: true, callbackUrl: '/auth/signin' });
+    const handleUpdateProject = async (id: string, newName: string) => {
+        try {
+            await update(id, { name: newName });
+            setEditingProject(null);
+            addToast('Project updated successfully', 'success');
+        } catch (error) {
+            console.error('Failed to update project:', error);
+            addToast('Failed to update project', 'error');
+        }
     };
 
+    const handleDeleteProject = async (id: string) => {
+        try {
+            await remove(id);
+            setShowDeleteConfirm(null);
+            addToast('Project deleted successfully', 'success');
+        } catch (error) {
+            console.error('Failed to delete project:', error);
+            addToast('Failed to delete project', 'error');
+        }
+    };
+
+    const handleSignOut = () => signOut({ redirect: true, callbackUrl: '/auth/signin' });
+
+    const ProjectActions = ({ project }: { project: { id: string; name: string } }) => (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100">
+            <div className="flex items-center gap-1">
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingProject(project.id);
+                    }}
+                    className="rounded-lg p-1.5 text-neutral-600 hover:bg-neutral-300 dark:text-neutral-400 dark:hover:bg-neutral-600"
+                >
+                    <Edit2 size={14} />
+                </button>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setShowDeleteConfirm(project.id);
+                    }}
+                    className="rounded-lg p-1.5 text-neutral-600 hover:bg-neutral-300 dark:text-neutral-400 dark:hover:bg-neutral-600"
+                >
+                    <Trash2 size={14} />
+                </button>
+            </div>
+        </div>
+    );
+
+    if (isLoading) {
+        return <div className="flex h-screen w-96 items-center justify-center bg-neutral-50 dark:bg-neutral-800">Loading...</div>;
+    }
+
+    if (error) {
+        return (
+            <div className="flex h-screen w-96 flex-col items-center justify-center bg-neutral-50 p-4 dark:bg-neutral-800">
+                <AlertCircle className="mb-2 h-8 w-8 text-red-500" />
+                <p className="text-center text-sm text-neutral-900 dark:text-white">{error}</p>
+            </div>
+        );
+    }
+
     return (
-        <div
-            style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
-            className="bg:neutral-50 flex w-full flex-shrink-0 flex-col p-2 pb-24 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-50 xl:w-96 xl:bg-neutral-100 xl:pb-2 xl:dark:bg-neutral-600"
-        >
-            <div className="flex h-full flex-col">
-                {/* Top section with New Note button */}
-                <div className="flex-shrink-0">
+        <div className="flex h-screen w-96 flex-col bg-neutral-50 dark:bg-neutral-800">
+            {/* Top Bar */}
+            <div className="flex items-center justify-between border-b border-neutral-200 p-4 dark:border-neutral-700">
+                <h1 className="text-lg font-bold text-neutral-900 dark:text-white">Projects</h1>
+                <div className="flex items-center gap-2">
+                    <ThemeToggle />
                     <button
-                        className="group relative mb-2 w-full rounded-md bg-primary-600 px-4 py-2 font-bold text-neutral-100 hover:bg-primary-700 dark:bg-primary-800 dark:hover:bg-primary-700"
-                        onClick={handleNewBlockClick}
-                        title="Create a new page"
+                        onClick={handleSignOut}
+                        className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                        aria-label="Sign out"
                     >
-                        <span>New Note</span>
+                        <LogOut size={18} />
                     </button>
                 </div>
+            </div>
 
-                {/* Main content area */}
-                <div className="flex min-h-0 flex-1 flex-col">
-                    {/* Recent Notes Section */}
-                    <div className="flex-shrink-0">
-                        <div
-                            onClick={toggleRecentExpanded}
-                            className="flex items-center justify-between rounded-md px-4 py-2 hover:cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-500"
-                        >
-                            <h4>Recent Notes</h4>
-                            <ChevronUpIcon
-                                className={`h-5 w-5 transform transition-transform duration-300 ${
-                                    isRecentExpanded ? '' : 'rotate-180'
-                                }`}
-                            />
-                        </div>
-                        <div
-                            className={`mt-2 ${
-                                isRecentExpanded
-                                    ? 'mb-4 opacity-100'
-                                    : 'max-h-0 overflow-hidden opacity-0'
-                            } duration-300`}
-                        >
-                            {recentBlocks.map((block) => (
-                                <SwipeableNote
-                                    key={block.id}
-                                    block={block}
-                                    onClick={() => handleBlockClick(block)}
-                                    onDelete={handleDeleteBlock}
-                                    showPreview={false}
-                                    showTime={false}
-                                />
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* All Notes Section */}
-                    <div className="flex min-h-0 flex-1 flex-col">
-                        <div
-                            onClick={toggleAllExpanded}
-                            className="flex items-center justify-between rounded-md px-4 py-2 hover:cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-500"
-                        >
-                            <h4>All Notes ({allBlocks.length})</h4>
-                            <ChevronUpIcon
-                                className={`h-5 w-5 transform transition-transform duration-300 ${
-                                    isAllExpanded ? '' : 'rotate-180'
-                                }`}
-                            />
-                        </div>
-                        <div
-                            className={`ml-4 mt-2 flex-1 overflow-y-auto ${
-                                isAllExpanded ? 'opacity-100' : 'max-h-0 overflow-hidden opacity-0'
-                            } duration-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar]:bg-transparent`}
-                        >
-                            {allBlocks.map((block) => (
-                                <SwipeableNote
-                                    key={block.id}
-                                    block={block}
-                                    onClick={() => handleBlockClick(block)}
-                                    onDelete={handleDeleteBlock}
-                                    showPreview={true}
-                                    showTime={true}
-                                />
-                            ))}
-                        </div>
-                    </div>
+            {/* Search and New Project */}
+            <div className="border-b border-neutral-200 p-4 dark:border-neutral-700">
+                <div className="relative mb-4">
+                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search projects..."
+                        className="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-9 pr-4 text-sm placeholder-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white dark:placeholder-neutral-400"
+                    />
                 </div>
-
-                {/* Bottom bar */}
-                <div className="mt-4 flex-shrink-0">
-                    <div className="flex items-center justify-between space-x-2">
-                        <button
-                            onClick={handleSignOut}
-                            className="rounded-md bg-neutral-100 p-4 text-neutral-900 hover:bg-neutral-200 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500"
-                            aria-label="Sign out"
-                        >
-                            <LogOut size={16} />
-                        </button>
-                        <div className="flex items-center space-x-2">
-                            <input
-                                type="file"
-                                id="fileInput"
-                                className="hidden"
-                                onChange={handleFileChange}
-                                accept=".json,.md"
-                            />
+                {!isCreatingProject ? (
+                    <button 
+                        onClick={() => setIsCreatingProject(true)}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 font-medium text-white hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600"
+                    >
+                        <Plus size={18} />
+                        <span>New Project</span>
+                    </button>
+                ) : (
+                    <form onSubmit={handleCreateProject} className="space-y-2">
+                        <input
+                            autoFocus
+                            type="text"
+                            value={newProjectName}
+                            onChange={(e) => setNewProjectName(e.target.value)}
+                            placeholder="Project name"
+                            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm placeholder-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white dark:placeholder-neutral-400"
+                        />
+                        <div className="flex gap-2">
                             <button
-                                onClick={() => {
-                                    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-                                    fileInput?.click();
-                                }}
-                                className="rounded-md bg-neutral-100 p-4 text-neutral-900 hover:bg-neutral-200 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500"
-                                aria-label="Import file"
+                                type="submit"
+                                className="flex-1 rounded-lg bg-primary-600 px-3 py-1 text-sm font-medium text-white hover:bg-primary-700"
                             >
-                                <Upload size={16} />
+                                Create
                             </button>
-                            <ThemeToggle />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsCreatingProject(false);
+                                    setNewProjectName('');
+                                }}
+                                className="flex-1 rounded-lg bg-neutral-200 px-3 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600"
+                            >
+                                Cancel
+                            </button>
                         </div>
-                    </div>
+                    </form>
+                )}
+            </div>
+
+            {/* View All Projects Button */}
+            <button 
+                onClick={() => setActiveProject(null)}
+                className="flex items-center justify-between border-b border-neutral-200 p-4 text-neutral-900 hover:bg-neutral-200 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700"
+            >
+                <span className="font-medium">All Projects</span>
+                <ChevronRight size={18} />
+            </button>
+
+            {/* Projects List */}
+            <div className="flex-1 overflow-y-auto p-4">
+                <div className="space-y-2">
+                    {filteredProjects.map(project => (
+                        <div key={project.id}>
+                            {showDeleteConfirm === project.id ? (
+                                <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/50">
+                                    <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <p className="text-sm">Delete "{project.name}"?</p>
+                                    </div>
+                                    <div className="mt-2 flex gap-2">
+                                        <button
+                                            onClick={() => handleDeleteProject(project.id)}
+                                            className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
+                                        >
+                                            Delete
+                                        </button>
+                                        <button
+                                            onClick={() => setShowDeleteConfirm(null)}
+                                            className="rounded bg-neutral-200 px-2 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => setActiveProject(project.id)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            setActiveProject(project.id);
+                                        }
+                                    }}
+                                    className={`group relative flex w-full items-center gap-3 rounded-lg p-3 text-left hover:bg-neutral-200 dark:hover:bg-neutral-700 ${
+                                        activeProject?.id === project.id ? 'bg-neutral-200 dark:bg-neutral-700' : ''
+                                    } cursor-pointer`}
+                                >
+                                    {activeProject?.id === project.id ? (
+                                        <FolderOpen size={18} className="text-primary-600 dark:text-primary-400" />
+                                    ) : (
+                                        <Folder size={18} className="text-neutral-500 dark:text-neutral-400" />
+                                    )}
+                                    <div className="flex-1 overflow-hidden">
+                                        {editingProject === project.id ? (
+                                            <input
+                                                type="text"
+                                                defaultValue={project.name}
+                                                autoFocus
+                                                onBlur={(e: React.FocusEvent<HTMLInputElement>) => handleUpdateProject(project.id, e.target.value)}
+                                                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                                                    if (e.key === 'Enter') {
+                                                        handleUpdateProject(project.id, e.currentTarget.value);
+                                                    } else if (e.key === 'Escape') {
+                                                        setEditingProject(null);
+                                                    }
+                                                    e.stopPropagation();
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="w-full rounded border border-neutral-300 bg-white px-2 py-1 text-sm dark:border-neutral-600 dark:bg-neutral-700"
+                                            />
+                                        ) : (
+                                            <>
+                                                <div className="truncate font-medium text-neutral-900 dark:text-white">
+                                                    {project.name}
+                                                </div>
+                                                <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                                                    {formatRelativeTime(project.updatedAt)}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                    {!editingProject && <ProjectActions project={project} />}
+                                </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
