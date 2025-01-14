@@ -337,52 +337,110 @@ export class BlockRepository implements BlockRepositoryInterface {
         threshold = 0.1,
         projectId?: string
     ): Promise<BlockSearchResult> {
-        const openai = this.ensureOpenAI();
-        const embeddings = await generateEmbeddings(openai, query);
+        try {
+            const openai = this.ensureOpenAI();
+            const lowercaseQuery = query.toLowerCase().trim();
 
-        if (!embeddings) {
-            throw new Error('Failed to generate embeddings for search query');
+            // First get exact matches (case-insensitive)
+            const exactMatches = await this.neo4j.executeQuery(
+                `
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block)
+                ${projectId ? 'MATCH (b)-[:IN_PROJECT]->(p:Project {id: $projectId})' : ''}
+                WITH b, 
+                    toLower(b.title) AS lowerTitle,
+                    toLower(b.plainText) AS lowerContent,
+                    $query AS searchQuery
+                WHERE lowerTitle CONTAINS searchQuery OR lowerContent CONTAINS searchQuery
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .plainText,
+                    .type,
+                    .createdAt,
+                    .updatedAt,
+                    matchType: CASE 
+                        WHEN lowerTitle CONTAINS searchQuery THEN 'title'
+                        WHEN lowerContent CONTAINS searchQuery THEN 'content'
+                    END
+                } AS block
+                `,
+                { query: lowercaseQuery, userId, projectId }
+            );
+
+            // Separate exact matches into title and content arrays
+            const titleMatches = exactMatches
+                .filter((row) => row.block.matchType === 'title')
+                .map((row) => ({
+                    ...row.block,
+                    createdAt: new Date(row.block.createdAt),
+                    updatedAt: new Date(row.block.updatedAt),
+                    similarity: 1,
+                }));
+
+            const contentMatches = exactMatches
+                .filter((row) => row.block.matchType === 'content')
+                .map((row) => ({
+                    ...row.block,
+                    createdAt: new Date(row.block.createdAt),
+                    updatedAt: new Date(row.block.updatedAt),
+                    similarity: 1,
+                }));
+
+            // Get embedding-based matches
+            const embeddings = await generateEmbeddings(openai, query);
+
+            if (!embeddings) {
+                throw new Error('Failed to generate embeddings for search query');
+            }
+
+            // Exclude IDs that we already found in exact matches
+            const exactMatchIds = exactMatches.map((row) => row.block.id);
+            const similarityMatches = await this.neo4j.executeQuery(
+                `
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block)
+                ${projectId ? 'MATCH (b)-[:IN_PROJECT]->(p:Project {id: $projectId})' : ''}
+                WHERE NOT b.id IN $exactMatchIds
+                AND b.embeddings IS NOT NULL
+                WITH b, gds.similarity.cosine(b.embeddings, $embeddings) AS score
+                WHERE score >= $threshold
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .type,
+                    .plainText,
+                    .createdAt,
+                    .updatedAt
+                } as block,
+                score
+                ORDER BY score DESC
+                `,
+                {
+                    embeddings,
+                    threshold,
+                    exactMatchIds,
+                    userId,
+                    projectId,
+                }
+            );
+
+            const transformedResults = similarityMatches.map((row) => ({
+                ...row.block,
+                createdAt: new Date(row.block.createdAt),
+                updatedAt: new Date(row.block.updatedAt),
+                similarity: row.score,
+            }));
+
+            return {
+                titleMatches,
+                contentMatches,
+                similarityMatches: transformedResults,
+            };
+        } catch (error) {
+            console.error('Failed to perform search:', error);
+            throw new Error('Search failed. Please try again.');
         }
-
-        const cypher = `
-            MATCH (u:User {id: $userId})-[:OWNS]->(b:Block)
-            ${projectId !== undefined ? 'MATCH (b)-[:IN_PROJECT]->(p:Project)' : ''}
-            WHERE b.embeddings IS NOT NULL
-            ${projectId ? 'AND p.id = $projectId' : ''}
-            WITH b, gds.similarity.cosine(b.embeddings, $embeddings) AS score
-            WHERE score >= $threshold
-            RETURN b {
-                .id,
-                .title,
-                .content,
-                .type,
-                .plainText,
-                .createdAt,
-                .updatedAt
-            } as block,
-            score
-            ORDER BY score DESC
-        `;
-
-        const result = await this.neo4j.executeQuery(cypher, {
-            embeddings,
-            threshold,
-            userId,
-            projectId,
-        });
-
-        const transformedResults = result.map((row) => ({
-            ...row.block,
-            createdAt: new Date(row.block.createdAt),
-            updatedAt: new Date(row.block.updatedAt),
-            similarity: row.score,
-        }));
-
-        return {
-            titleMatches: [],
-            contentMatches: [],
-            similarityMatches: transformedResults,
-        };
     }
 
     async getBlocks(
