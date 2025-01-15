@@ -85,6 +85,7 @@ export class BlockRepository implements BlockRepositoryInterface {
 
             const query = `
                 MATCH (u:User {id: $userId})
+                ${input.projectId ? 'MATCH (p:Project {id: $projectId}) WHERE (u)-[:OWNS|CAN_EDIT]->(p)' : ''}
                 CREATE (b:Block {
                     id: $id,
                     title: $title,
@@ -96,6 +97,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                     updatedAt: datetime()
                 })
                 CREATE (u)-[:OWNS]->(b)
+                ${input.projectId ? 'CREATE (b)-[:IN_PROJECT]->(p)' : ''}
                 RETURN b {
                     .id,
                     .title,
@@ -116,6 +118,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                 plainText,
                 embeddings,
                 userId: input.userId,
+                projectId: input.projectId,
             });
 
             if (!result.length) {
@@ -142,6 +145,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                 title: block.title,
                 content: block.content,
                 type: block.type,
+                projectId: input.projectId,
                 createdAt: new Date(block.createdAt),
                 updatedAt: new Date(block.updatedAt),
                 plainText: block.plainText,
@@ -265,9 +269,9 @@ export class BlockRepository implements BlockRepositoryInterface {
                     embeddings: params.embeddings,
                 }));
 
-                const result = await this.neo4j.executeWrite(query, { 
+                const result = await this.neo4j.executeWrite(query, {
                     blocks: blocksParam,
-                    userId: inputs[0].userId // All blocks in a batch should have the same userId
+                    userId: inputs[0].userId, // All blocks in a batch should have the same userId
                 });
                 console.log(`Database write completed for batch ${Math.floor(i / batchSize) + 1}`);
 
@@ -330,55 +334,23 @@ export class BlockRepository implements BlockRepositoryInterface {
     async searchBlocks(
         query: string,
         userId: string,
-        threshold = 0.25
+        threshold = 0.1,
+        projectId?: string
     ): Promise<BlockSearchResult> {
-        const openai = this.ensureOpenAI();
-
-        const embeddings = await generateEmbeddings(openai, query);
-        if (!embeddings) {
-            throw new Error('Failed to generate embeddings for search query');
-        }
-
-        const cypher = `
-            MATCH (u:User {id: $userId})-[:OWNS]->(b:Block)
-            WHERE b.embeddings IS NOT NULL
-            WITH b, gds.similarity.cosine(b.embeddings, $embeddings) AS score
-            WHERE score >= $threshold
-            RETURN b {
-                .id,
-                .title,
-                .content,
-                .type,
-                .plainText,
-                .createdAt,
-                .updatedAt
-            } as block,
-            score
-            ORDER BY score DESC
-        `;
-
-        const result = await this.neo4j.executeQuery(cypher, {
-            embeddings,
-            threshold,
-            userId,
-        });
-
-        return {
-            titleMatches: [],
-            contentMatches: [],
-            similarityMatches: result.map((row) => ({
-                ...row.block,
-                createdAt: new Date(row.block.createdAt),
-                updatedAt: new Date(row.block.updatedAt),
-                similarity: row.score,
-            })),
-        };
-    }
-
-    async getBlocks(userId: string, includeEmbeddings = false): Promise<Block[]> {
         try {
-            const query = `
+            const openai = this.ensureOpenAI();
+            const lowercaseQuery = query.toLowerCase().trim();
+
+            // First get exact matches (case-insensitive)
+            const exactMatches = await this.neo4j.executeQuery(
+                `
                 MATCH (u:User {id: $userId})-[:OWNS]->(b:Block)
+                ${projectId ? 'MATCH (b)-[:IN_PROJECT]->(p:Project {id: $projectId})' : ''}
+                WITH b, 
+                    toLower(b.title) AS lowerTitle,
+                    toLower(b.plainText) AS lowerContent,
+                    $query AS searchQuery
+                WHERE lowerTitle CONTAINS searchQuery OR lowerContent CONTAINS searchQuery
                 RETURN b {
                     .id,
                     .title,
@@ -386,13 +358,115 @@ export class BlockRepository implements BlockRepositoryInterface {
                     .plainText,
                     .type,
                     .createdAt,
+                    .updatedAt,
+                    matchType: CASE 
+                        WHEN lowerTitle CONTAINS searchQuery THEN 'title'
+                        WHEN lowerContent CONTAINS searchQuery THEN 'content'
+                    END
+                } AS block
+                `,
+                { query: lowercaseQuery, userId, projectId }
+            );
+
+            // Separate exact matches into title and content arrays
+            const titleMatches = exactMatches
+                .filter((row) => row.block.matchType === 'title')
+                .map((row) => ({
+                    ...row.block,
+                    createdAt: new Date(row.block.createdAt),
+                    updatedAt: new Date(row.block.updatedAt),
+                    similarity: 1,
+                }));
+
+            const contentMatches = exactMatches
+                .filter((row) => row.block.matchType === 'content')
+                .map((row) => ({
+                    ...row.block,
+                    createdAt: new Date(row.block.createdAt),
+                    updatedAt: new Date(row.block.updatedAt),
+                    similarity: 1,
+                }));
+
+            // Get embedding-based matches
+            const embeddings = await generateEmbeddings(openai, query);
+
+            if (!embeddings) {
+                throw new Error('Failed to generate embeddings for search query');
+            }
+
+            // Exclude IDs that we already found in exact matches
+            const exactMatchIds = exactMatches.map((row) => row.block.id);
+            const similarityMatches = await this.neo4j.executeQuery(
+                `
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block)
+                ${projectId ? 'MATCH (b)-[:IN_PROJECT]->(p:Project {id: $projectId})' : ''}
+                WHERE NOT b.id IN $exactMatchIds
+                AND b.embeddings IS NOT NULL
+                WITH b, gds.similarity.cosine(b.embeddings, $embeddings) AS score
+                WHERE score >= $threshold
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .type,
+                    .plainText,
+                    .createdAt,
                     .updatedAt
-                    ${includeEmbeddings ? ', .embeddings' : ''}
+                } as block,
+                score
+                ORDER BY score DESC
+                `,
+                {
+                    embeddings,
+                    threshold,
+                    exactMatchIds,
+                    userId,
+                    projectId,
+                }
+            );
+
+            const transformedResults = similarityMatches.map((row) => ({
+                ...row.block,
+                createdAt: new Date(row.block.createdAt),
+                updatedAt: new Date(row.block.updatedAt),
+                similarity: row.score,
+            }));
+
+            return {
+                titleMatches,
+                contentMatches,
+                similarityMatches: transformedResults,
+            };
+        } catch (error) {
+            console.error('Failed to perform search:', error);
+            throw new Error('Search failed. Please try again.');
+        }
+    }
+
+    async getBlocks(
+        userId: string,
+        includeEmbeddings = false,
+        projectId?: string
+    ): Promise<Block[]> {
+        try {
+            const query = `
+                MATCH (u:User {id: $userId})-[:OWNS]->(b:Block)
+                ${projectId ? 'MATCH (b)-[:IN_PROJECT]->(p:Project {id: $projectId})' : ''}
+                RETURN b {
+                    .id,
+                    .title,
+                    .content,
+                    .plainText,
+                    .type,
+                    .createdAt,
+                    .updatedAt,
+                    ${includeEmbeddings ? '.embeddings,' : ''}
+                    project: head([(b)-[:IN_PROJECT]->(p:Project) | p { .id, .name }])
                 } as block
                 ORDER BY b.updatedAt DESC
             `;
 
-            const result = await this.neo4j.executeQuery(query, { userId });
+            const result = await this.neo4j.executeQuery(query, { userId, projectId });
 
             return result.map((record) => ({
                 id: record.block.id,
@@ -403,6 +477,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                 createdAt: new Date(record.block.createdAt),
                 updatedAt: new Date(record.block.updatedAt),
                 ...(includeEmbeddings && { embeddings: record.block.embeddings }),
+                projectId: record.block.project?.id,
             }));
         } catch (error) {
             console.error('Failed to get blocks:', error);
@@ -427,7 +502,8 @@ export class BlockRepository implements BlockRepositoryInterface {
                     .type,
                     .createdAt,
                     .updatedAt
-                    ${includeEmbeddings ? ', .embeddings' : ''}
+                    ${includeEmbeddings ? ', .embeddings' : ''},
+                    project: head([(b)-[:IN_PROJECT]->(p:Project) | p { .id, .name }])
                 } as block
             `;
 
@@ -458,6 +534,7 @@ export class BlockRepository implements BlockRepositoryInterface {
                 createdAt: new Date(block.createdAt),
                 updatedAt: new Date(block.updatedAt),
                 ...(includeEmbeddings && { embeddings: block.embeddings }),
+                projectId: block.project?.id,
             };
         } catch (error) {
             console.error('Failed to get block:', error);
@@ -465,76 +542,66 @@ export class BlockRepository implements BlockRepositoryInterface {
         }
     }
 
-    async updateBlock(
-        id: string,
-        userId: string,
-        updates: BlockUpdate,
-        device?: string,
-        location?: GeoLocation
-    ): Promise<Block> {
+    async updateBlock(id: string, userId: string, updates: BlockUpdate): Promise<Block> {
         try {
-            const plainText = getPlainText(updates.content || '');
-            const combinedText = `${updates.title} ${plainText}`;
-            const embeddings = await generateEmbeddings(this.ensureOpenAI(), combinedText);
+            // Only generate new plainText if content is being updated
+            const blockUpdates: Record<string, any> = {
+                ...updates,
+                updatedAt: new Date().toISOString(),
+            };
+
+            if (updates.content !== undefined) {
+                blockUpdates.plainText = getPlainText(updates.content);
+                // Only generate new embeddings if title or content changed
+                const combinedText = `${updates.title || ''} ${blockUpdates.plainText}`;
+                blockUpdates.embeddings = await generateEmbeddings(
+                    this.ensureOpenAI(),
+                    combinedText
+                );
+            }
 
             const query = `
                 MATCH (u:User {id: $userId})-[:OWNS]->(b:Block {id: $id})
-                SET b += $updates,
-                    b.plainText = $plainText,
-                    b.embeddings = $embeddings,
-                    b.updatedAt = datetime()
-                RETURN b {
-                    .id,
-                    .title,
-                    .content,
-                    .plainText,
-                    .type,
-                    .createdAt,
-                    .updatedAt
-                } as block
+                ${
+                    updates.projectId !== undefined
+                        ? `
+                    OPTIONAL MATCH (b)-[r:IN_PROJECT]->(:Project)
+                    DELETE r
+                    WITH b, u
+                `
+                        : ''
+                }
+                SET b += $blockUpdates
+                ${
+                    updates.projectId
+                        ? `
+                    WITH b
+                    MATCH (p:Project {id: $projectId})
+                    CREATE (b)-[:IN_PROJECT]->(p)
+                    WITH b
+                `
+                        : ''
+                }
+                RETURN b { .* } as block
             `;
 
             const result = await this.neo4j.executeWrite(query, {
                 id,
-                updates: {
-                    ...(updates.title !== undefined && { title: updates.title }),
-                    ...(updates.content !== undefined && { content: updates.content }),
-                    ...(updates.type !== undefined && { type: updates.type }),
-                },
-                plainText,
-                embeddings,
                 userId,
+                blockUpdates,
+                projectId: updates.projectId,
             });
 
             if (!result.length) {
-                throw new Error(`Block with id ${id} not found`);
+                throw new Error('Block not found');
             }
 
             const block = result[0].block;
-
-            // Queue background tasks
-            this.ensureSmartLinkRepository()
-                .traceBlockLinks(id, userId)
-                .catch((error) => console.error('Failed to compute similarities:', error));
-
-            this.ensureSmartLinkRepository()
-                .traceTime(id, userId, 'UPDATE')
-                .catch((error) => console.error('Failed to save time data:', error));
-
-            if (device || location) {
-                this.ensureSmartLinkRepository()
-                    .traceContext(id, userId, device, location)
-                    .catch((error) => console.error('Failed to trace context:', error));
-            }
-
             return {
-                id: block.id,
-                title: block.title,
-                content: block.content,
-                plainText: block.plainText,
-                type: block.type,
+                ...block,
                 createdAt: new Date(block.createdAt),
                 updatedAt: new Date(block.updatedAt),
+                projectId: block.projectId?.id,
             };
         } catch (error) {
             console.error('Failed to update block:', error);

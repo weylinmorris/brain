@@ -1,6 +1,7 @@
 import { useContext, useCallback } from 'react';
 import { SearchContext } from '@/context/SearchContext';
 import { searchBlocks } from '@/lib/api';
+import { useProject } from '@/hooks/useProject';
 
 export function useSearch() {
     const context = useContext(SearchContext);
@@ -9,12 +10,13 @@ export function useSearch() {
     }
 
     const { state, dispatch } = context;
+    const { activeProject } = useProject();
 
     const performSearch = useCallback(
         async (query: string) => {
             try {
                 dispatch({ type: 'START_LOADING' });
-                const results = await searchBlocks(query);
+                const results = await searchBlocks(query, activeProject?.id);
                 dispatch({ type: 'SET_RESULTS', results });
                 return results;
             } catch (error) {
@@ -27,7 +29,7 @@ export function useSearch() {
                 dispatch({ type: 'FINISH_LOADING' });
             }
         },
-        [dispatch]
+        [dispatch, activeProject]
     );
 
     const clearSearch = useCallback(() => {

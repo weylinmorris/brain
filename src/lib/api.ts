@@ -1,5 +1,12 @@
 import { Block } from '@/types/block';
-import { BlockInput, BlockUpdate, BlockSearchResult } from '@/types/database';
+import {
+    BlockInput,
+    BlockUpdate,
+    BlockSearchResult,
+    Project,
+    ProjectInput,
+    ProjectUpdate,
+} from '@/types/database';
 import { SearchResults } from '@/types/state';
 import { getDeviceLocation, getDeviceName } from '@/utils/metadataUtils';
 
@@ -21,12 +28,22 @@ async function handleResponse<T>(response: Response): Promise<T> {
     return response.json();
 }
 
-export async function fetchBlocks(): Promise<Block[]> {
-    const response = await fetch('/api/blocks');
+export async function fetchBlocks(projectId?: string): Promise<Block[]> {
+    if (projectId) {
+        const response = await fetch(`/api/blocks?projectId=${projectId}`);
+        return handleResponse<Block[]>(response);
+    }
+    const response = await fetch(`/api/blocks`);
     return handleResponse<Block[]>(response);
 }
 
-export async function searchBlocks(query: string): Promise<SearchResults> {
+export async function searchBlocks(query: string, projectId?: string): Promise<SearchResults> {
+    if (projectId) {
+        const response = await fetch(
+            `/api/blocks/search?query=${encodeURIComponent(query)}&projectId=${projectId}`
+        );
+        return handleResponse<SearchResults>(response);
+    }
     const response = await fetch(`/api/blocks/search?query=${encodeURIComponent(query)}`);
     return handleResponse<SearchResults>(response);
 }
@@ -103,6 +120,39 @@ export async function importBlocks(file: File): Promise<void> {
     const response = await fetch('/api/blocks/import', {
         method: 'POST',
         body: file,
+    });
+
+    return handleResponse<void>(response);
+}
+
+export async function fetchProjects(): Promise<Project[]> {
+    const response = await fetch('/api/projects');
+    return handleResponse<Project[]>(response);
+}
+
+export async function createProject(project: ProjectInput): Promise<Project> {
+    const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(project),
+    });
+
+    return handleResponse<Project>(response);
+}
+
+export async function updateProject(id: string, project: ProjectUpdate): Promise<Project> {
+    const response = await fetch(`/api/projects/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(project),
+    });
+
+    return handleResponse<Project>(response);
+}
+
+export async function deleteProject(id: string): Promise<void> {
+    const response = await fetch(`/api/projects/${id}`, {
+        method: 'DELETE',
     });
 
     return handleResponse<void>(response);

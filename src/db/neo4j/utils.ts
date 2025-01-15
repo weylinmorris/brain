@@ -103,42 +103,79 @@ interface RootNode {
 }
 
 export function getPlainText(content: string): string {
+    console.log('=== getPlainText START ===');
+    console.log('Input content:', content);
+    console.log('Content type:', typeof content);
+
     try {
         // Check if content is empty or not provided
         if (!content || typeof content !== 'string') {
-            console.warn('Content is empty or invalid:', content);
-            return ''; // Return an empty string for empty content
+            console.warn('Content validation failed:', {
+                isEmpty: !content,
+                type: typeof content,
+                content,
+            });
+            return '';
         }
 
         // Parse the JSON content
+        console.log('Attempting to parse JSON content...');
         const parsedContent = JSON.parse(content) as RootNode;
+        console.log('Parsed content:', parsedContent);
 
         // Recursive function to extract text from nodes
         const extractText = (node: TextNode): string => {
-            if (!node) return '';
+            console.log('Processing node:', {
+                type: node?.type,
+                hasText: !!node?.text,
+                hasChildren: !!node?.children,
+                childrenCount: node?.children?.length,
+            });
+
+            if (!node) {
+                console.log('Node is null/undefined');
+                return '';
+            }
 
             // Handle text nodes
             if (node.type === 'text' && node.text) {
+                console.log('Found text node:', node.text);
                 return node.text;
             }
 
             // Handle nodes with children
             if (node.children && Array.isArray(node.children)) {
-                return node.children.map(extractText).join('');
+                console.log(`Processing ${node.children.length} children`);
+                const result = node.children.map(extractText).join('');
+                console.log('Combined children result:', result);
+                return result;
             }
 
-            return ''; // Fallback for nodes without text or children
+            console.log('No text or children found in node');
+            return '';
         };
 
         // Start extracting from the root node
         if (parsedContent.root && parsedContent.root.children) {
-            return parsedContent.root.children.map(extractText).join('');
+            console.log(`Processing root with ${parsedContent.root.children.length} children`);
+            const result = parsedContent.root.children.map(extractText).join('');
+            console.log('Final result:', result);
+            return result;
         }
 
-        console.warn('Parsed content does not have a valid root or children:', parsedContent);
-        return ''; // Return empty string if structure is invalid
+        console.warn('Invalid content structure:', {
+            hasRoot: !!parsedContent.root,
+            hasChildren: !!parsedContent.root?.children,
+        });
+        return '';
     } catch (error) {
-        console.error('Failed to parse content or extract plain text:', error);
-        return ''; // Return empty string if parsing fails
+        console.error('Error in getPlainText:', {
+            error,
+            errorMessage: error instanceof Error ? error.message : 'Unknown error',
+            content: content.slice(0, 100) + '...', // Show first 100 chars of content
+        });
+        return '';
+    } finally {
+        console.log('=== getPlainText END ===');
     }
 }

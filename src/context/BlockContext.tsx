@@ -5,6 +5,7 @@ import { BlockState, BlockAction } from '@/reducers/blocks/types';
 import { initialBlockState, blockReducer } from '@/reducers/blocks/reducer';
 import { fetchBlocks } from '@/lib/api';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { useProject } from '@/hooks/useProject';
 
 interface BlockContextType {
     state: BlockState;
@@ -18,6 +19,7 @@ interface BlockProviderProps {
 }
 
 function BlockProviderContent({ children }: BlockProviderProps) {
+    const { activeProject } = useProject();
     const [state, dispatch] = useReducer(blockReducer, initialBlockState);
 
     useEffect(() => {
@@ -26,7 +28,7 @@ function BlockProviderContent({ children }: BlockProviderProps) {
         async function loadInitialBlocks() {
             try {
                 dispatch({ type: 'START_LOADING' });
-                const blocks = await fetchBlocks();
+                const blocks = await fetchBlocks(activeProject?.id);
 
                 if (!mounted) return;
 
@@ -56,7 +58,7 @@ function BlockProviderContent({ children }: BlockProviderProps) {
         return () => {
             mounted = false;
         };
-    }, [state.activeBlockId]);
+    }, [activeProject?.id]);
 
     return <BlockContext.Provider value={{ state, dispatch }}>{children}</BlockContext.Provider>;
 }

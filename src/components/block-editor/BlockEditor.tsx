@@ -231,6 +231,7 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ className }) => {
                                     updatedAt: new Date(),
                                     plainText: '',
                                     embeddings: [],
+                                    projectId: '',
                                 }
                             }
                             className="editor-toolbar"

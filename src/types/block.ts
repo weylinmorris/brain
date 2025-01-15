@@ -1,5 +1,6 @@
 export interface Block {
     id: string;
+    projectId?: string;
     title: string;
     content: string;
     type: 'text' | 'image' | 'code' | 'math';

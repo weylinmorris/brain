@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db/client';
-import { BlockUpdate, GeoLocation } from '@/types/database';
-import { Block } from '@/types/block';
+import { ProjectUpdate } from '@/types/database';
+import { Project } from '@/types/database';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 
@@ -10,7 +10,7 @@ type RouteParams = { params: Promise<{ id: string }> };
 export async function GET(
     request: NextRequest,
     context: RouteParams
-): Promise<NextResponse<Block | { error: string; details?: string }>> {
+): Promise<NextResponse<Project | { error: string; details?: string }>> {
     const { id } = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -21,15 +21,15 @@ export async function GET(
     try {
         await db.ensureConnection();
 
-        const block = await db.blocks.getBlock(id, userId);
+        const project = await db.projects.getProject(id, userId);
 
-        if (!block) {
-            return NextResponse.json({ error: 'Block not found' }, { status: 404 });
+        if (!project) {
+            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
         }
 
-        return NextResponse.json(block);
+        return NextResponse.json(project);
     } catch (error) {
-        console.error('GET /api/blocks/[id] error:', {
+        console.error('GET /api/projects/[id] error:', {
             id,
             userId,
             name: error instanceof Error ? error.name : 'Unknown error',
@@ -60,19 +60,15 @@ export async function GET(
     }
 }
 
-interface UpdateBlockRequest {
-    content?: string;
-    title?: string;
-    type?: 'text' | 'image' | 'code' | 'math';
-    device?: string;
-    location?: GeoLocation;
-    projectId?: string;
+interface UpdateProjectRequest {
+    name?: string;
+    description?: string;
 }
 
 export async function PATCH(
     request: Request,
     context: RouteParams
-): Promise<NextResponse<Block | { error: string; details?: string }>> {
+): Promise<NextResponse<Project | { error: string; details?: string }>> {
     const { id } = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -83,31 +79,32 @@ export async function PATCH(
     try {
         await db.ensureConnection();
 
-        const body = (await request.json()) as UpdateBlockRequest;
+        const body = (await request.json()) as UpdateProjectRequest;
 
         // Validate fields if they're present
-        if (body.content !== undefined && typeof body.content !== 'string') {
-            console.warn('PATCH /api/blocks/[id]: Invalid content', { id, content: body.content });
-            return NextResponse.json({ error: 'Content must be a string' }, { status: 400 });
+        if (body.name !== undefined && typeof body.name !== 'string') {
+            console.warn('PATCH /api/projects/[id]: Invalid name', { id, name: body.name });
+            return NextResponse.json({ error: 'Name must be a string' }, { status: 400 });
         }
 
-        if (body.title !== undefined && typeof body.title !== 'string') {
-            console.warn('PATCH /api/blocks/[id]: Invalid title', { id, title: body.title });
-            return NextResponse.json({ error: 'Title must be a string' }, { status: 400 });
+        if (body.description !== undefined && typeof body.description !== 'string') {
+            console.warn('PATCH /api/projects/[id]: Invalid description', {
+                id,
+                description: body.description,
+            });
+            return NextResponse.json({ error: 'Description must be a string' }, { status: 400 });
         }
 
         // Only include fields that are actually present in the request
-        const updates: BlockUpdate = {};
-        if (body.content !== undefined) updates.content = body.content;
-        if (body.title !== undefined) updates.title = body.title;
-        if (body.type !== undefined) updates.type = body.type;
-        if (body.projectId !== undefined) updates.projectId = body.projectId;
+        const updates: ProjectUpdate = {};
+        if (body.name !== undefined) updates.name = body.name;
+        if (body.description !== undefined) updates.description = body.description;
 
-        const block = await db.blocks.updateBlock(id, userId, updates, body.device, body.location);
+        const project = await db.projects.updateProject(id, userId, updates);
 
-        return NextResponse.json(block);
+        return NextResponse.json(project);
     } catch (error) {
-        console.error('PATCH /api/blocks/[id] error:', {
+        console.error('PATCH /api/projects/[id] error:', {
             id,
             name: error instanceof Error ? error.name : 'Unknown error',
             message: error instanceof Error ? error.message : 'Unknown error',
@@ -127,8 +124,8 @@ export async function PATCH(
             return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
         }
 
-        if (error instanceof Error && error.message === 'Block not found') {
-            return NextResponse.json({ error: 'Block not found' }, { status: 404 });
+        if (error instanceof Error && error.message === 'Project not found') {
+            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
         }
 
         return NextResponse.json(
@@ -155,11 +152,11 @@ export async function DELETE(
     try {
         await db.ensureConnection();
 
-        await db.blocks.deleteBlock(id);
+        await db.projects.deleteProject(id, userId);
 
         return NextResponse.json(null);
     } catch (error) {
-        console.error('DELETE /api/blocks/[id] error:', {
+        console.error('DELETE /api/projects/[id] error:', {
             id,
             name: error instanceof Error ? error.name : 'Unknown error',
             message: error instanceof Error ? error.message : 'Unknown error',
@@ -179,8 +176,8 @@ export async function DELETE(
             return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
         }
 
-        if (error instanceof Error && error.message === 'Block not found') {
-            return NextResponse.json({ error: 'Block not found' }, { status: 404 });
+        if (error instanceof Error && error.message === 'Project not found') {
+            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
         }
 
         return NextResponse.json(

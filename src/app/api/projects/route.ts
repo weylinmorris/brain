@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db/client';
-import { BlockInput } from '@/types/database';
-import { Block } from '@/types/block';
+import { ProjectInput } from '@/types/database';
+import { Project } from '@/types/database';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 
 export async function GET(
     request: NextRequest
-): Promise<NextResponse<Block[] | { error: string; details?: string }>> {
-    const projectId = request.nextUrl.searchParams.get('projectId');
-
+): Promise<NextResponse<Project[] | { error: string; details?: string }>> {
     try {
         await db.ensureConnection();
 
@@ -19,11 +17,11 @@ export async function GET(
         }
         const userId = session.user.id;
 
-        const blocks = await db.blocks.getBlocks(userId, false, projectId ?? undefined);
+        const projects = await db.projects.getProjects(userId);
 
-        return NextResponse.json(blocks || []);
+        return NextResponse.json(projects || []);
     } catch (error) {
-        console.error('GET /api/blocks error:', {
+        console.error('GET /api/projects error:', {
             name: error instanceof Error ? error.name : 'Unknown error',
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
@@ -39,7 +37,7 @@ export async function GET(
             'code' in error &&
             (error as { code: string }).code === 'ECONNREFUSED'
         ) {
-            console.error('GET /api/blocks: Database connection refused');
+            console.error('GET /api/projects: Database connection refused');
             return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
         }
 
@@ -53,24 +51,18 @@ export async function GET(
     }
 }
 
-interface CreateBlockRequest {
-    title?: string;
-    content?: string;
-    parentId?: string | null;
-    type?: 'text' | 'image' | 'code' | 'math';
-    isPage?: boolean;
-    device?: string | null;
-    location?: { lat: number; lng: number } | null;
-    projectId?: string | null;
+interface CreateProjectRequest {
+    name: string;
+    description?: string;
 }
 
 export async function POST(
     request: NextRequest
-): Promise<NextResponse<Block | { error: string; details?: string }>> {
+): Promise<NextResponse<Project | { error: string; details?: string }>> {
     try {
         await db.ensureConnection();
 
-        const body = (await request.json()) as CreateBlockRequest;
+        const body = (await request.json()) as CreateProjectRequest;
 
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
@@ -78,22 +70,25 @@ export async function POST(
         }
         const userId = session.user.id;
 
-        // Ensure required fields with defaults
-        const blockData: BlockInput = {
-            userId: userId,
-            title: body.title ?? '',
-            content: body.content ?? '',
-            type: body.type ?? 'text',
-            device: body.device ?? undefined,
-            location: body.location ?? undefined,
-            projectId: body.projectId ?? undefined,
+        // Validate required fields
+        if (!body.name || typeof body.name !== 'string') {
+            return NextResponse.json(
+                { error: 'Name is required and must be a string' },
+                { status: 400 }
+            );
+        }
+
+        const projectData: ProjectInput = {
+            name: body.name,
+            description: body.description,
+            userId,
         };
 
-        const block = await db.blocks.createBlock(blockData);
+        const project = await db.projects.createProject(projectData);
 
-        return NextResponse.json(block);
+        return NextResponse.json(project);
     } catch (error) {
-        console.error('POST /api/blocks error:', {
+        console.error('POST /api/projects error:', {
             name: error instanceof Error ? error.name : 'Unknown error',
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,

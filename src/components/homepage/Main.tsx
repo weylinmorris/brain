@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import BlockEditor from '@/components/block-editor/BlockEditor';
-import Search from './Search';
+import { NoteComposer } from '@/components/notes/NoteComposer';
+import { NoteFeed } from '@/components/notes/NoteFeed';
 
 const Main: React.FC = () => {
     useEffect(() => {
@@ -11,7 +11,7 @@ const Main: React.FC = () => {
             document.documentElement.style.setProperty('--vh', `${vh}px`);
         };
 
-        setVh(); // Set on mount
+        setVh();
         window.addEventListener('resize', setVh);
         window.addEventListener('orientationchange', setVh);
 
@@ -24,11 +24,13 @@ const Main: React.FC = () => {
     return (
         <div
             style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
-            className="flex w-full flex-col overflow-hidden bg-neutral-50 p-2 pb-24 dark:bg-neutral-800 xl:pb-2"
+            className="flex w-full flex-col overflow-hidden bg-neutral-50 dark:bg-neutral-800"
         >
-            <Search />
-            <div className="min-h-0 flex-1">
-                <BlockEditor className="h-full" />
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-300 hover:scrollbar-thumb-neutral-400 dark:scrollbar-thumb-neutral-700 dark:hover:scrollbar-thumb-neutral-600 md:p-6">
+                <div className="mx-auto max-w-2xl">
+                    <NoteComposer />
+                    <NoteFeed />
+                </div>
             </div>
         </div>
     );

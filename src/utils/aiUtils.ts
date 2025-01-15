@@ -36,10 +36,11 @@ export async function generateAnswer(
                 {
                     role: 'system',
                     content: `You are a knowledgeable assistant providing accurate information from your notes.
+                    You may also provide advice or recommendations based on the notes.
                     For each fact you mention, YOU MUST cite the source using [Title] at the end of the sentence.
-                    You are populating as a plain text paragraph, so do not use markdown or html or any other distracting formatting.
+                    You are populating as a plain text paragraph, so absolutely do not use markdown or html or any other formatting.
                     Write in a natural, engaging style without mentioning "the context" or "the provided information" or "the notes" or anything similar.
-                    If you can't find relevant information to answer the question, simply say "I don't have enough information to answer that question."
+                    If you can't find any relevant information to answer the question, simply say "I don't have enough information to answer that question."
                     Keep responses concise and informative.`,
                 },
                 {
