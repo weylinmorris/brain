@@ -72,7 +72,9 @@ export function useBlock() {
     );
 
     const getRecommendedBlocks = useCallback(
-        async (blockId: string) => {
+        async (blockId: string | null) => {
+            if (!blockId) return;
+
             try {
                 dispatch({ type: 'START_LOADING' });
                 const recommendedBlocks = await fetchRecommendedBlocks(blockId);
@@ -91,7 +93,7 @@ export function useBlock() {
     );
 
     const setActiveBlock = useCallback(
-        (id: string) => {
+        (id: string | null) => {
             dispatch({ type: 'SET_ACTIVE_BLOCK', id });
         },
         [dispatch]

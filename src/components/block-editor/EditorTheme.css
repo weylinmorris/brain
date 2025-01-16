@@ -35,10 +35,12 @@
 .EditorTheme__ltr {
     color: var(--editor-theme-text-color);
     text-align: left;
+    padding-bottom: 16px;
 }
 .EditorTheme__rtl {
     color: var(--editor-theme-text-color);
     text-align: right;
+    padding-bottom: 16px;
 }
 .EditorTheme__paragraph {
     color: var(--editor-theme-text-color);

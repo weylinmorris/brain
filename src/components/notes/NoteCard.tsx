@@ -18,16 +18,26 @@ interface NoteCardProps {
         content: string;
         projectId?: string;
     };
+    isActive?: boolean;
 }
 
-export const NoteCard = ({ block }: NoteCardProps) => {
+export const NoteCard = ({ block, isActive }: NoteCardProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
     const [showProjectModal, setShowProjectModal] = useState(false);
     const [contentHeight, setContentHeight] = useState<number>(COLLAPSED_HEIGHT);
     const contentRef = useRef<HTMLDivElement>(null);
+    const cardRef = useRef<HTMLElement>(null);
     const { removeBlock, modifyBlock } = useBlock();
     const { projects } = useProject();
+
+    // Scroll into view and expand when active
+    useEffect(() => {
+        if (isActive && cardRef.current) {
+            setIsExpanded(true);
+            cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, [isActive]);
 
     useEffect(() => {
         if (contentRef.current) {
@@ -68,7 +78,13 @@ export const NoteCard = ({ block }: NoteCardProps) => {
 
     return (
         <>
-            <article className="group relative rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:bg-neutral-900">
+            <article
+                ref={cardRef}
+                data-block-id={block.id}
+                className={`group relative scroll-mt-4 rounded-lg bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md dark:bg-neutral-900 ${
+                    isActive ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''
+                }`}
+            >
                 <div className="absolute right-2 top-2">
                     <ContextMenu items={menuItems} isOpen={showMenu} onOpenChange={setShowMenu} />
                 </div>

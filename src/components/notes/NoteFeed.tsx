@@ -5,7 +5,7 @@ import { useBlock } from '@/hooks/useBlock';
 import { NoteCard } from './NoteCard';
 
 export const NoteFeed = () => {
-    const { blocks, isLoading, error } = useBlock();
+    const { blocks, isLoading, error, activeBlockId } = useBlock();
     const [sortedBlocks, setSortedBlocks] = useState<typeof blocks>([]);
 
     useEffect(() => {
@@ -35,7 +35,7 @@ export const NoteFeed = () => {
     return (
         <div className="space-y-4">
             {sortedBlocks.map((block) => (
-                <NoteCard key={block.id} block={block} />
+                <NoteCard key={block.id} block={block} isActive={block.id === activeBlockId} />
             ))}
         </div>
     );

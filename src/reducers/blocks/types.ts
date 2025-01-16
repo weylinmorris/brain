@@ -17,5 +17,5 @@ export type BlockAction =
     | { type: 'SET_RECOMMENDED_BLOCKS'; blocks: Block[] }
     | { type: 'UPDATE_BLOCK'; block: Block }
     | { type: 'REMOVE_BLOCK'; id: string }
-    | { type: 'SET_ACTIVE_BLOCK'; id: string }
+    | { type: 'SET_ACTIVE_BLOCK'; id: string | null }
     | { type: 'CLEAR_ACTIVE_BLOCK' };

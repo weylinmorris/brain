@@ -75,7 +75,7 @@ export const NoteComposer = () => {
                         What&apos;s on your mind?
                     </div>
                 }
-                className="min-h-[100px] w-full resize-none rounded-lg border-0 bg-transparent text-sm text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-0 dark:text-white dark:placeholder-neutral-400"
+                className="scrollable max-h-[90vh] min-h-[100px] w-full resize-none rounded-lg border-0 bg-transparent text-sm text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-0 dark:text-white dark:placeholder-neutral-400"
             />
             <div className="flex items-center justify-between border-t border-neutral-200 pt-3 dark:border-neutral-700">
                 <div className="flex flex-col gap-1">

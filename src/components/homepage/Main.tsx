@@ -26,7 +26,7 @@ const Main: React.FC = () => {
             style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
             className="flex w-full flex-col overflow-hidden bg-neutral-50 dark:bg-neutral-800"
         >
-            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-300 hover:scrollbar-thumb-neutral-400 dark:scrollbar-thumb-neutral-700 dark:hover:scrollbar-thumb-neutral-600 md:p-6">
+            <div className="scrollable flex-1 p-4 md:p-6">
                 <div className="mx-auto max-w-2xl">
                     <NoteComposer />
                     <NoteFeed />

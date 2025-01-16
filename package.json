@@ -27,6 +27,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/prismjs": "^1.26.5",
     "bcryptjs": "^2.4.3",
+    "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
     "lexical": "^0.21.0",
     "lodash": "^4.17.21",
@@ -42,6 +43,7 @@
     "prismjs": "^1.29.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "tailwind-merge": "^2.6.0",
     "uuid": "^11.0.3"
   },
   "devDependencies": {

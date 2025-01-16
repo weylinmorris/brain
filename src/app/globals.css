@@ -3,6 +3,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+    .scrollable {
+        @apply overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-300 hover:scrollbar-thumb-neutral-400 dark:scrollbar-thumb-neutral-700 dark:hover:scrollbar-thumb-neutral-600;
+    }
+}
+
 @layer base {
     /* Headings */
     h1 {

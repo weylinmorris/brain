@@ -164,11 +164,17 @@ const RightSidebar: React.FC = () => {
 
     const handleResultClick = (blockId: string) => {
         setActiveBlock(blockId);
+        // Find and scroll to the block
+        const element = document.querySelector(`[data-block-id="${blockId}"]`);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     };
 
     const handleClear = () => {
         setQuery('');
         clearSearch();
+        setActiveBlock(null);
     };
 
     return (
@@ -205,7 +211,7 @@ const RightSidebar: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-300 hover:scrollbar-thumb-neutral-400 dark:scrollbar-thumb-neutral-700 dark:hover:scrollbar-thumb-neutral-600">
+            <div className="scrollable flex-1">
                 {aiAnswer && sources && (
                     <div className="border-b border-neutral-200 dark:border-neutral-700">
                         <AnswerDisplay

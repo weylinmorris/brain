@@ -33,13 +33,6 @@ function BlockProviderContent({ children }: BlockProviderProps) {
                 if (!mounted) return;
 
                 dispatch({ type: 'SET_BLOCKS', blocks });
-
-                if (!state.activeBlockId && blocks.length > 0) {
-                    const sortedBlocks = [...blocks].sort(
-                        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-                    );
-                    dispatch({ type: 'SET_ACTIVE_BLOCK', id: sortedBlocks[0].id });
-                }
             } catch (error) {
                 if (!mounted) return;
                 dispatch({
