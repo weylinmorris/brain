@@ -24,7 +24,7 @@ const Main: React.FC = () => {
     return (
         <div
             style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
-            className="flex w-full flex-col overflow-hidden bg-neutral-50 dark:bg-neutral-800"
+            className="flex w-full flex-col overflow-hidden bg-neutral-50 dark:bg-neutral-700"
         >
             <div className="scrollable flex-1 p-4 md:p-6">
                 <div className="mx-auto max-w-2xl">
