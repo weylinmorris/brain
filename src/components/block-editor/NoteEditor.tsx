@@ -19,6 +19,7 @@ import { TRANSFORMERS } from '@lexical/markdown';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import baseTheme from './EditorTheme';
 import { CodeHighlightPlugin } from './plugins/CodeHighlightPlugin';
+import { MarkdownPastePlugin } from './plugins/MarkdownPastePlugin';
 import { KEY_ENTER_COMMAND, LexicalEditor } from 'lexical';
 
 // Import Prism languages
@@ -157,6 +158,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
                         {autoFocus && <AutoFocusPlugin />}
                         <TabIndentationPlugin />
                         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+                        <MarkdownPastePlugin />
                     </>
                 )}
             </div>
