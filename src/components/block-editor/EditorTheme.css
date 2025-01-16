@@ -10,7 +10,10 @@
     --editor-theme-text-color: theme('colors.neutral.800');
     --editor-theme-strikethrough-color: theme('colors.neutral.500');
     --editor-theme-code-color: theme('colors.neutral.800');
-    --editor-theme-code-background: theme('colors.neutral.200');
+    --editor-theme-code-background: theme('colors.neutral.50');
+    --editor-theme-code-gutter-background: theme('colors.neutral.100');
+    --editor-theme-code-gutter-text-color: theme('colors.neutral.400');
+    --editor-theme-code-gutter-border-color: theme('colors.neutral.200');
 }
 
 /* Dark theme overrides */
@@ -23,7 +26,10 @@
     --editor-theme-text-color: theme('colors.neutral.200');
     --editor-theme-strikethrough-color: theme('colors.neutral.500');
     --editor-theme-code-color: theme('colors.neutral.200');
-    --editor-theme-code-background: theme('colors.neutral.600');
+    --editor-theme-code-background: theme('colors.neutral.700');
+    --editor-theme-code-gutter-background: theme('colors.neutral.600');
+    --editor-theme-code-gutter-text-color: theme('colors.neutral.400');
+    --editor-theme-code-gutter-border-color: theme('colors.neutral.600');
 }
 
 .EditorTheme__ltr {
@@ -203,28 +209,50 @@
 }
 .EditorTheme__code {
     background-color: var(--editor-theme-code-background);
+    color: var(--editor-theme-code-color);
     font-family: Menlo, Consolas, Monaco, monospace;
     display: block;
-    padding: 8px 8px 8px 52px;
+    padding: 8px 8px 8px 36px;
     line-height: 1.53;
     font-size: 13px;
     margin: 0;
-    margin-top: 8px;
-    margin-bottom: 8px;
+    margin-top: 16px;
+    margin-bottom: 16px;
     overflow-x: auto;
     position: relative;
     tab-size: 2;
     border-radius: 0.375rem;
+    counter-reset: line;
+    white-space: pre;
+}
+
+.EditorTheme__code > div {
+    counter-increment: line;
+    white-space: pre;
+    color: var(--editor-theme-code-color);
+}
+
+.EditorTheme__code > div::before {
+    background-color: var(--editor-theme-code-gutter-background);
+    content: counter(line);
+    position: absolute;
+    left: 0;
+    width: 40px;
+    padding-right: 8px;
+    text-align: right;
+    color: var(--editor-theme-code-gutter-text-color);
+    opacity: 0.5;
+    user-select: none;
 }
 .EditorTheme__code:before {
     content: attr(data-gutter);
     position: absolute;
-    background-color: #eee;
+    background-color: var(--editor-theme-code-gutter-background);
     left: 0;
     top: 0;
-    border-right: 1px solid #ccc;
+    border-right: 1px solid var(--editor-theme-code-gutter-border-color);
     padding: 8px;
-    color: #777;
+    color: var(--editor-theme-code-gutter-text-color);
     white-space: pre-wrap;
     text-align: right;
     min-width: 25px;
@@ -502,29 +530,29 @@
     display: none;
 }
 .EditorTheme__tokenComment {
-    color: theme('colors.neutral.500');
+    color: theme('colors.neutral.400');
     font-style: italic;
 }
 .EditorTheme__tokenPunctuation {
-    color: theme('colors.neutral.400');
+    color: theme('colors.neutral.700');
 }
 .EditorTheme__tokenProperty {
-    color: theme('colors.blue.400');
+    color: theme('colors.blue.600');
 }
 .EditorTheme__tokenSelector {
-    color: theme('colors.green.400');
+    color: theme('colors.green.600');
 }
 .EditorTheme__tokenOperator {
-    color: theme('colors.yellow.400');
+    color: theme('colors.amber.600');
 }
 .EditorTheme__tokenAttr {
-    color: theme('colors.purple.400');
+    color: theme('colors.purple.600');
 }
 .EditorTheme__tokenVariable {
-    color: theme('colors.orange.400');
+    color: theme('colors.orange.600');
 }
 .EditorTheme__tokenFunction {
-    color: theme('colors.pink.400');
+    color: theme('colors.pink.600');
 }
 .EditorTheme__mark {
     background: rgba(255, 212, 0, 0.14);
@@ -582,4 +610,31 @@
 .EditorTheme__specialText {
     background-color: yellow;
     font-weight: bold;
+}
+
+/* Dark theme */
+:root.dark .EditorTheme__tokenComment {
+    color: theme('colors.neutral.500');
+    font-style: italic;
+}
+:root.dark .EditorTheme__tokenPunctuation {
+    color: theme('colors.neutral.400');
+}
+:root.dark .EditorTheme__tokenProperty {
+    color: theme('colors.blue.400');
+}
+:root.dark .EditorTheme__tokenSelector {
+    color: theme('colors.green.400');
+}
+:root.dark .EditorTheme__tokenOperator {
+    color: theme('colors.yellow.400');
+}
+:root.dark .EditorTheme__tokenAttr {
+    color: theme('colors.purple.400');
+}
+:root.dark .EditorTheme__tokenVariable {
+    color: theme('colors.orange.400');
+}
+:root.dark .EditorTheme__tokenFunction {
+    color: theme('colors.pink.400');
 }

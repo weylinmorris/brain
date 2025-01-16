@@ -5,41 +5,10 @@ import { ChevronDown, ChevronUp, Trash2, FolderInput } from 'lucide-react';
 import { formatRelativeTime } from '@/utils/dateUtils';
 import { ContextMenu } from '@/components/global/ContextMenu';
 import { useBlock } from '@/hooks/useBlock';
-import { LexicalComposer } from '@lexical/react/LexicalComposer';
-import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
-import { ContentEditable } from '@lexical/react/LexicalContentEditable';
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { ListPlugin } from '@lexical/react/LexicalListPlugin';
-import { HeadingNode, QuoteNode } from '@lexical/rich-text';
-import { ListItemNode, ListNode } from '@lexical/list';
-import { CodeNode } from '@lexical/code';
-import baseTheme from '@/components/block-editor/EditorTheme';
 import { useProject } from '@/hooks/useProject';
+import { NoteEditor } from '@/components/block-editor/NoteEditor';
+
 const COLLAPSED_HEIGHT = 160; // in pixels
-
-// Create a read-only theme that extends the base theme
-const theme = {
-    ...baseTheme,
-    root: 'text-sm',
-    paragraph: baseTheme.paragraph + ' !text-sm',
-    text: {
-        ...baseTheme.text,
-        base: baseTheme.text?.base + ' !text-sm',
-    },
-    ltr: baseTheme.ltr + ' !text-sm',
-    rtl: baseTheme.rtl + ' !text-sm',
-};
-
-const readOnlyConfig = {
-    namespace: 'NoteCardReader',
-    theme,
-    nodes: [HeadingNode, QuoteNode, ListItemNode, ListNode, CodeNode],
-    editable: false,
-    onError: (error: Error) => {
-        console.error('Error in NoteCardReader:', error);
-    },
-};
 
 interface NoteCardProps {
     block: {
@@ -59,11 +28,6 @@ export const NoteCard = ({ block }: NoteCardProps) => {
     const contentRef = useRef<HTMLDivElement>(null);
     const { removeBlock, modifyBlock } = useBlock();
     const { projects } = useProject();
-    const editorConfig = {
-        ...readOnlyConfig,
-        editorState: block.content,
-    };
-    const [shouldShowExpand, setShouldShowExpand] = useState(false);
 
     useEffect(() => {
         if (contentRef.current) {
@@ -100,6 +64,7 @@ export const NoteCard = ({ block }: NoteCardProps) => {
     ];
 
     const project = projects.find((project) => project.id === block.projectId);
+    const [shouldShowExpand, setShouldShowExpand] = useState(false);
 
     return (
         <>
@@ -123,19 +88,11 @@ export const NoteCard = ({ block }: NoteCardProps) => {
                         className="relative overflow-hidden transition-[height] duration-200 ease-in-out"
                     >
                         <div ref={contentRef}>
-                            <LexicalComposer initialConfig={editorConfig}>
-                                <div className="relative text-sm [&_*]:!text-sm">
-                                    <RichTextPlugin
-                                        contentEditable={
-                                            <ContentEditable className="outline-none" />
-                                        }
-                                        placeholder={null}
-                                        ErrorBoundary={LexicalErrorBoundary}
-                                    />
-                                    <HistoryPlugin />
-                                    <ListPlugin />
-                                </div>
-                            </LexicalComposer>
+                            <NoteEditor
+                                content={block.content}
+                                isReadOnly
+                                className="outline-none"
+                            />
                         </div>
                         {shouldShowExpand && !isExpanded && (
                             <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent dark:from-neutral-900" />
