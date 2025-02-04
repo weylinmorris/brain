@@ -39,16 +39,24 @@ const theme = {
     },
 };
 
+type NoteEditorProps = {
+    content?: string;
+    onChange?: (content: string) => void;
+    onSubmit?: () => void;
+    isReadOnly?: boolean;
+    placeholder?: any;
+    className?: string;
+    autoFocus?: boolean;
+    onEditorReady?: (editor: any) => void;
+};
+
 const EditorContent = ({
     onChange,
     onSubmit,
     isReadOnly,
     className,
     onEditorReady,
-}: Pick<
-    NoteEditorProps,
-    'onChange' | 'onSubmit' | 'isReadOnly' | 'className' | 'onEditorReady'
->) => {
+}: NoteEditorProps) => {
     const [editor] = useLexicalComposerContext();
 
     useEffect(() => {
