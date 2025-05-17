@@ -12,6 +12,7 @@
     "src/utils/dateUtils.ts",
     "src/utils/blockUtils.ts",
     "src/utils/aiUtils.ts",
+    "src/utils/metadataUtils.ts",
     "src/types/ai.ts",
     "src/types/block.ts",
     "src/@types/**/*.d.ts",
