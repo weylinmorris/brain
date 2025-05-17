@@ -1,4 +1,6 @@
 declare module 'openai' {
-    const OpenAI: any;
-    export default OpenAI;
+  class OpenAI {
+    constructor(...args: any[]);
+  }
+  export default OpenAI;
 }
