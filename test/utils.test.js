@@ -30,6 +30,14 @@ test('classifyQuery works', async () => {
   assert.equal(await classifyQuery('Tell me something'), 'search');
 });
 
+test('classifyQuery trims whitespace', async () => {
+  assert.equal(await classifyQuery('  hi?  '), 'question');
+});
+
+test('classifyQuery requires question mark at end', async () => {
+  assert.equal(await classifyQuery('Is this? tricky'), 'search');
+});
+
 test('getPreviewFromBlockContent', () => {
   assert.equal(getPreviewFromBlockContent(sampleBlock), 'Hello world');
 });
