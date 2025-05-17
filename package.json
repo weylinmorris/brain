@@ -10,7 +10,8 @@
     "lint": "next lint",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
     "typecheck": "tsc --noEmit",
-    "checkall": "npm run lint && npm run typecheck && npm run format"
+    "checkall": "npm run lint && npm run typecheck && npm run format",
+    "test": "npx tsc -p tsconfig.test.json --outDir build && node --test"
   },
   "dependencies": {
     "@lexical/code": "^0.21.0",
