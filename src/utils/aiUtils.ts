@@ -1,10 +1,19 @@
-import OpenAI from 'openai';
+import type { default as OpenAIClass } from 'openai';
 import { QueryType, AnswerResult } from '@/types/ai';
 import { Block } from '@/types/block';
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+let openai: any = null;
+
+async function getOpenAI(): Promise<any> {
+    if (!openai) {
+        const mod = await import('openai');
+        const OpenAI = (mod as any).default as typeof OpenAIClass;
+        openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        });
+    }
+    return openai;
+}
 
 /**
  * Classifies a query as either a question or a search
@@ -30,7 +39,8 @@ export async function generateAnswer(
             .map((block) => `Title: ${block.title}\nContent: ${block.plainText}`)
             .join('\n\n');
 
-        const response = await openai.chat.completions.create({
+        const client = await getOpenAI();
+        const response = await client.chat.completions.create({
             model: process.env.OPENAI_ANSWER_MODEL || 'gpt-4',
             messages: [
                 {
