@@ -34,3 +34,16 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Deploy on Heroku
+
+1. Install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
+2. Log in with `heroku login` and create an app with `heroku create`.
+3. Commit a `Procfile` and push your code to Heroku:
+
+   ```bash
+   git push heroku main
+   ```
+
+Heroku will run `npm install` and `npm run build` during the build phase, then
+start the app using the command defined in `Procfile`.
