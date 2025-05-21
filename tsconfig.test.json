@@ -17,5 +17,13 @@
     "src/@types/**/*.d.ts",
     "src/@types/node/process.d.ts",
     "src/types/lexical.ts"
+    ,"src/reducers/blocks/reducer.ts"
+    ,"src/reducers/blocks/types.ts"
+    ,"src/reducers/projects/reducer.ts"
+    ,"src/reducers/projects/types.ts"
+    ,"src/reducers/search/reducer.ts"
+    ,"src/reducers/search/types.ts"
+    ,"src/types/database.ts"
+    ,"src/types/state.ts"
   ]
 }

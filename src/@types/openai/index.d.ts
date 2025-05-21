@@ -1,4 +1,9 @@
 declare module 'openai' {
-    const OpenAI: any;
+    interface OpenAIOptions {
+        apiKey?: string;
+    }
+    class OpenAI {
+        constructor(options?: OpenAIOptions);
+    }
     export default OpenAI;
 }
