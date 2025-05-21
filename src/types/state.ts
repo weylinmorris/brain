@@ -1,5 +1,6 @@
 import { Block } from './block';
 import { BlockSearchResult } from './database';
+import type { Dispatch } from 'react';
 
 export interface BlockState {
     blocks: Block[];
@@ -34,5 +35,5 @@ export type BlockAction =
 
 export interface BlockContextType {
     state: BlockState;
-    dispatch: React.Dispatch<BlockAction>;
+    dispatch: Dispatch<BlockAction>;
 }
